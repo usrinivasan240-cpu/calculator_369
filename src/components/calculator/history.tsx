@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { type CalculationRecord, getHistoryStream, clearHistory } from '@/lib/firebase/firestore';
+import { type CalculationRecord, clearHistory } from '@/lib/firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -20,22 +20,22 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Skeleton } from '../ui/skeleton';
+import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
 
 export default function History() {
   const { user } = useAuth();
-  const [history, setHistory] = useState<CalculationRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    if (user) {
-      setLoading(true);
-      const unsubscribe = getHistoryStream(user.uid, (records) => {
-        setHistory(records);
-        setLoading(false);
-      });
-      return () => unsubscribe();
-    }
-  }, [user]);
+  const historyQuery = useMemo(() => {
+    if (!user) return null;
+    return query(
+      collection(firestore, 'users', user.uid, 'history'),
+      orderBy('timestamp', 'desc')
+    );
+  }, [user, firestore]);
+
+  const { data: history, isLoading: loading } = useCollection<CalculationRecord>(historyQuery);
 
   const handleClearHistory = async () => {
     if (user) {
@@ -59,19 +59,19 @@ export default function History() {
                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
             </div>
           )}
-          {!loading && history.length === 0 && (
+          {!loading && history && history.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
               <p>No calculations yet.</p>
               <p className="text-sm">Your history will appear here.</p>
             </div>
           )}
           <div className="space-y-4">
-            {history.map((item) => (
+            {history && history.map((item) => (
               <div key={item.id} className="text-sm border-b pb-2">
                 <p className="text-muted-foreground truncate">{item.expression}</p>
                 <div className="flex justify-between items-center">
                     <p className="text-xs text-muted-foreground">
-                        {item.timestamp ? formatDistanceToNow(item.timestamp.toDate(), { addSuffix: true }) : ''}
+                        {item.timestamp ? formatDistanceToNow(new Date(item.timestamp.seconds * 1000), { addSuffix: true }) : ''}
                     </p>
                     <p className="font-bold text-lg text-right">= {item.result}</p>
                 </div>
@@ -80,7 +80,7 @@ export default function History() {
           </div>
         </ScrollArea>
       </CardContent>
-      {history.length > 0 && !loading && (
+      {history && history.length > 0 && !loading && (
         <CardFooter>
           <AlertDialog>
             <AlertDialogTrigger asChild>

@@ -8,16 +8,16 @@ import History from '@/components/calculator/history';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MainLayout() {
-  const { user, loading } = useAuth();
+  const { user, isUserLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!isUserLoading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, isUserLoading, router]);
 
-  if (loading || !user) {
+  if (isUserLoading || !user) {
     return (
         <div className="flex flex-col min-h-screen">
           <header className="flex h-16 items-center justify-between border-b px-4 md:px-6 container max-w-7xl">

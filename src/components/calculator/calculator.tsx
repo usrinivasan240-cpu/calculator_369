@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import CalculatorDisplay from './display';
 import Keypad from './keypad';
@@ -32,7 +32,7 @@ export default function Calculator() {
     } else {
         setMode('Standard');
     }
-  }, [debouncedExpression]);
+  }, [debouncedExpression, mode]);
 
   const handleCalculate = useCallback(async () => {
     if (!expression) return;
@@ -44,7 +44,7 @@ export default function Calculator() {
       setResult(formattedResult);
 
       if (user) {
-        await addCalculation(user.uid, { expression, result: formattedResult });
+        addCalculation(user.uid, { expression, result: formattedResult });
       }
     } catch (error) {
       setResult('Error');

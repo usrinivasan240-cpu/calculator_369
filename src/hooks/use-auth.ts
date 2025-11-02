@@ -1,11 +1,6 @@
 "use client";
-import { useContext } from 'react';
-import { FirebaseContext } from '@/components/providers/firebase-provider';
+import { useUser } from '@/firebase';
 
 export const useAuth = () => {
-  const context = useContext(FirebaseContext);
-  if (!context) {
-    throw new Error('useAuth must be used within a FirebaseProvider');
-  }
-  return context;
+    return useUser();
 };

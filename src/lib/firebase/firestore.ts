@@ -1,5 +1,6 @@
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, getDocs, writeBatch } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, getDocs, writeBatch, query } from "firebase/firestore";
 import { db } from "./config";
+import { addDocumentNonBlocking } from "@/firebase";
 
 export interface CalculationRecord {
   id?: string;
@@ -8,33 +9,13 @@ export interface CalculationRecord {
   timestamp: any;
 }
 
-export const addCalculation = async (userId: string, calc: Omit<CalculationRecord, 'id' | 'timestamp'>) => {
-  try {
-    await addDoc(collection(db, "users", userId, "history"), {
-      ...calc,
-      timestamp: serverTimestamp(),
-    });
-  } catch (error) {
-    console.error("Error adding calculation: ", error);
-    throw error;
-  }
-};
-
-export const getHistoryStream = (userId: string, callback: (records: CalculationRecord[]) => void) => {
+export const addCalculation = (userId: string, calc: Omit<CalculationRecord, 'id' | 'timestamp'>) => {
   const historyCollection = collection(db, "users", userId, "history");
-  const q = query(historyCollection, orderBy("timestamp", "desc"));
-
-  return onSnapshot(q, (querySnapshot) => {
-    const records: CalculationRecord[] = [];
-    querySnapshot.forEach((doc) => {
-      records.push({ id: doc.id, ...doc.data() } as CalculationRecord);
-    });
-    callback(records);
-  }, (error) => {
-    console.error("Error fetching history: ", error);
+  addDocumentNonBlocking(historyCollection, {
+    ...calc,
+    timestamp: serverTimestamp(),
   });
 };
-
 
 export const clearHistory = async (userId: string) => {
   const historyCollection = collection(db, "users", userId, "history");
