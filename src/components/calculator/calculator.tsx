@@ -4,12 +4,12 @@ import { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import CalculatorDisplay from './display';
 import Keypad from './keypad';
-import { useAuth } from '@/hooks/use-auth';
 import { addCalculation } from '@/lib/firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { evaluate } from 'mathjs';
 import { getAdaptiveMode } from '@/app/actions/calculator';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useUser, useFirestore } from '@/firebase';
 
 export type CalculatorMode = 'Standard' | 'Scientific';
 
@@ -17,7 +17,8 @@ export default function Calculator() {
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('');
   const [mode, setMode] = useState<CalculatorMode>('Standard');
-  const { user } = useAuth();
+  const { user } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const debouncedExpression = useDebounce(expression, 500);
@@ -44,7 +45,7 @@ export default function Calculator() {
       setResult(formattedResult);
 
       if (user) {
-        addCalculation(user.uid, { expression, result: formattedResult });
+        addCalculation(user.uid, { expression, result: formattedResult }, firestore);
       }
     } catch (error) {
       setResult('Error');
@@ -54,7 +55,7 @@ export default function Calculator() {
         description: "Please check your calculation.",
       });
     }
-  }, [expression, user, toast]);
+  }, [expression, user, toast, firestore]);
 
   const handleButtonClick = useCallback((value: string) => {
     setResult('');
