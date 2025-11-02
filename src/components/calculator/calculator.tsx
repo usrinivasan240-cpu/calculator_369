@@ -125,12 +125,16 @@ export default function Calculator() {
         setResult('Error');
       }
     } else if (value === '1/x') {
-        setExpression((prev) => `1/(${prev})`);
+        if (mode === 'Standard') setMode('Scientific');
+        setExpression((prev) => prev + '1/(');
     } else if (value === 'x²') {
-        setExpression((prev) => `power(${prev}, 2)`);
+        if (mode === 'Standard') setMode('Scientific');
+        setExpression((prev) => prev + 'power(');
     } else if (value === 'x³') {
-        setExpression((prev) => `power(${prev}, 3)`);
+        if (mode === 'Standard') setMode('Scientific');
+        setExpression((prev) => prev + 'power(');
     } else if (value === 'n!') {
+      if (mode === 'Standard') setMode('Scientific');
       setExpression((prev) => `factorial(${prev})`);
     } else if (['sin', 'cos', 'tan', 'log', 'sqrt', 'cbrt'].includes(value)) {
         if (mode === 'Standard') setMode('Scientific');
