@@ -17,18 +17,15 @@ export const keys: KeyDefinition[] = [
     { label: 'log', value: 'log', type: 'function', mode: 'Scientific' },
 
     // Scientific Row 2
-    { label: 'ln', value: 'ln', type: 'function', mode: 'Scientific' },
     { label: 'x²', value: 'x²', type: 'function', mode: 'Scientific' },
     { label: 'x³', value: 'x³', type: 'function', mode: 'Scientific' },
     { label: 'xʸ', value: '^', type: 'operator', mode: 'Scientific' },
+    { label: '√', value: 'sqrt', type: 'function', mode: 'Scientific' },
     
     // Scientific Row 3
-    { label: '√', value: 'sqrt', type: 'function', mode: 'Scientific' },
     { label: '∛', value: 'cbrt', type: 'function', mode: 'Scientific' },
     { label: '1/x', value: '1/x', type: 'function', mode: 'Scientific' },
     { label: 'n!', value: 'n!', type: 'function', mode: 'Scientific' },
-
-    // Parentheses
     { label: '(', value: '(', type: 'operator', mode: 'Scientific' },
     { label: ')', value: ')', type: 'operator', mode: 'Scientific' },
 
