@@ -1,0 +1,121 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Smart Calculator application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "URL of the user's profile photo.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
+    },
+    "CalculationHistory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CalculationHistory",
+      "type": "object",
+      "description": "Represents a single calculation performed by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CalculationHistory entry."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N CalculationHistory)"
+        },
+        "expression": {
+          "type": "string",
+          "description": "The mathematical expression that was evaluated."
+        },
+        "result": {
+          "type": "string",
+          "description": "The result of the calculation."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time when the calculation was performed.",
+          "format": "date-time"
+        },
+        "isScientific": {
+          "type": "boolean",
+          "description": "Indicates whether the calculation was performed in scientific mode."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "expression",
+        "result",
+        "timestamp"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. User id is used for path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/history/{calculationId}",
+        "definition": {
+          "entityName": "CalculationHistory",
+          "schema": {
+            "$ref": "#/backend/entities/CalculationHistory"
+          },
+          "description": "Stores the calculation history for each user. Access is restricted to the user based on the userId in the path. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "calculationId",
+              "description": "The unique identifier for the calculation history entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure data isolation and easy management of user-specific calculation histories. It leverages path-based ownership to enforce strict access control, ensuring that users can only access their own calculation data. This approach eliminates the need for complex security rules that involve `get()` operations, thus achieving Authorization Independence. The segregation of data into user-specific subcollections directly supports QAPs by preventing unauthorized access to other users' calculation histories, and by enabling efficient listing and querying of calculation histories for a specific user."
+  }
+}
