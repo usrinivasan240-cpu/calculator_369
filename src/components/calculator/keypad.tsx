@@ -14,10 +14,10 @@ interface KeypadProps {
 export default function Keypad({ onButtonClick, mode }: KeypadProps) {
     
     const scientificKeys = keys.filter(key => key.mode === 'Scientific');
-    const standardFunctionKeys = keys.filter(key => key.mode === 'Standard');
-    const sharedActionKeys = keys.filter(key => key.mode === 'All' && (key.type === 'action' || key.type === 'function'));
-    const operatorKeys = keys.filter(key => key.mode === 'All' && key.type === 'operator');
-    const numberAndUtilKeys = keys.filter(k => k.mode === 'All' && (k.type === 'number' || k.value === '='));
+    const numberKeys = keys.filter(key => key.type === 'number');
+    const operatorKeys = keys.filter(key => key.type === 'operator' && key.mode === 'All');
+    const actionKeys = keys.filter(key => key.type === 'action');
+    const functionKeys = keys.filter(key => key.type === 'function' && key.mode !== 'Scientific');
 
     const renderKey = (key: KeyDefinition) => (
         <motion.div key={key.value} layout className={key.className || ''}>
@@ -34,14 +34,6 @@ export default function Keypad({ onButtonClick, mode }: KeypadProps) {
         </motion.div>
     );
 
-    const actionKeysToShow = mode === 'Standard' 
-        ? [...sharedActionKeys, ...standardFunctionKeys, ...operatorKeys].sort((a, b) => keys.indexOf(a) - keys.indexOf(b))
-        : [...sharedActionKeys, ...operatorKeys].sort((a, b) => keys.indexOf(a) - keys.indexOf(b));
-    
-    // Make sure C, backspace, %, bin are on one row and division is at the end for standard
-    const topRowKeys = keys.filter(k => ['C', '⌫', '%', 'bin'].includes(k.value));
-    const operatorRowKeys = keys.filter(k => k.type === 'operator' && k.mode === 'All');
-
     return (
         <div className="grid grid-cols-1 gap-2">
             {mode === 'Scientific' && (
@@ -50,29 +42,22 @@ export default function Keypad({ onButtonClick, mode }: KeypadProps) {
                 </div>
             )}
             
-            <div className="grid grid-cols-4 gap-2">
-                {topRowKeys.filter(k => mode === 'Standard' ? true : k.value !== 'bin').map(renderKey)}
-                {mode === 'Standard' && <div />} 
-            </div>
+            <div className="grid grid-cols-5 gap-2">
+                {/* Numbers on the left */}
+                <div className="col-span-3 grid grid-cols-3 gap-2">
+                    {actionKeys.filter(k => k.value !== '=' && k.value !== 'C').map(renderKey)}
+                    {functionKeys.map(renderKey)}
+                    {actionKeys.find(k => k.value ==='C') && renderKey(actionKeys.find(k => k.value ==='C')!)}
+                    
+                    {numberKeys.filter(k => k.value !== '0' && k.value !== '.').sort((a,b) => parseInt(b.value) - parseInt(a.value)).map(renderKey)}
+                    {numberKeys.filter(k => k.value === '0' || k.value === '.').map(renderKey)}
+                </div>
 
-            <div className="grid grid-cols-4 gap-2">
-                {keys.filter(k => k.value >= '7' && k.value <= '9').map(renderKey)}
-                {keys.filter(k => k.value === '×').map(renderKey)}
-            </div>
-
-            <div className="grid grid-cols-4 gap-2">
-                {keys.filter(k => k.value >= '4' && k.value <= '6').map(renderKey)}
-                {keys.filter(k => k.value === '-').map(renderKey)}
-            </div>
-
-            <div className="grid grid-cols-4 gap-2">
-                {keys.filter(k => k.value >= '1' && k.value <= '3').map(renderKey)}
-                {keys.filter(k => k.value === '+').map(renderKey)}
-            </div>
-            
-            <div className="grid grid-cols-4 gap-2">
-                 {keys.filter(k => k.mode === 'All' && (k.type === 'number' || k.value === '.') && !['1','2','3','4','5','6','7','8','9'].includes(k.value) ).map(renderKey)}
-                 {keys.filter(k => k.value === '=').map(renderKey)}
+                {/* Operators on the right */}
+                <div className="col-span-2 grid grid-cols-2 gap-2">
+                    {operatorKeys.map(renderKey)}
+                    {actionKeys.filter(k => k.value === '=').map(renderKey)}
+                </div>
             </div>
         </div>
     );
