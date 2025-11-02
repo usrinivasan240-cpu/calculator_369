@@ -1,5 +1,5 @@
-import { collection, addDoc, serverTimestamp, getDocs, writeBatch, query } from "firebase/firestore";
-import { db } from "./config";
+import { collection, addDoc, serverTimestamp, getDocs, writeBatch, query, Firestore } from "firebase/firestore";
+import { db as defaultDb } from "./config";
 import { addDocumentNonBlocking } from "@/firebase";
 
 export interface CalculationRecord {
@@ -10,14 +10,17 @@ export interface CalculationRecord {
 }
 
 export const addCalculation = (userId: string, calc: Omit<CalculationRecord, 'id' | 'timestamp'>) => {
-  const historyCollection = collection(db, "users", userId, "history");
+  // Note: This function uses the default 'db' instance. 
+  // It might be better to pass the firestore instance from the component
+  // to ensure consistency, especially in tests or complex setups.
+  const historyCollection = collection(defaultDb, "users", userId, "history");
   addDocumentNonBlocking(historyCollection, {
     ...calc,
     timestamp: serverTimestamp(),
   });
 };
 
-export const clearHistory = async (userId: string) => {
+export const clearHistory = async (userId: string, db: Firestore) => {
   const historyCollection = collection(db, "users", userId, "history");
   const q = query(historyCollection);
   const snapshot = await getDocs(q);

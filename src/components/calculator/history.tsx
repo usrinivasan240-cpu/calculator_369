@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { type CalculationRecord, clearHistory } from '@/lib/firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -20,15 +20,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Skeleton } from '../ui/skeleton';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 
 export default function History() {
   const { user } = useAuth();
   const firestore = useFirestore();
 
-  const historyQuery = useMemo(() => {
-    if (!user) return null;
+  const historyQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
     return query(
       collection(firestore, 'users', user.uid, 'history'),
       orderBy('timestamp', 'desc')
@@ -39,7 +39,7 @@ export default function History() {
 
   const handleClearHistory = async () => {
     if (user) {
-      await clearHistory(user.uid);
+      await clearHistory(user.uid, firestore);
     }
   };
 
