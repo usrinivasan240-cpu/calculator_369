@@ -93,7 +93,13 @@ export default function Calculator() {
         if (currentValue) {
           const num = parseInt(currentValue, 10);
           if (!isNaN(num)) {
-            setExpression(num.toString(2));
+            const binaryResult = num.toString(2);
+            const originalExpression = `dec_to_bin(${currentValue})`;
+            setExpression(originalExpression);
+            setResult(binaryResult);
+            if (user && firestore) {
+              addCalculation(user.uid, { expression: originalExpression, result: binaryResult, isScientific: mode === 'Scientific' }, firestore);
+            }
           }
         }
       } catch (e) {
@@ -117,7 +123,7 @@ export default function Calculator() {
     } else {
       setExpression((prev) => prev + value);
     }
-  }, [handleCalculate, mode, mathInstance, result, expression]);
+  }, [handleCalculate, mode, mathInstance, result, expression, user, firestore]);
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
