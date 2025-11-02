@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
@@ -6,10 +7,12 @@ import CalculatorDisplay from './display';
 import Keypad from './keypad';
 import { addCalculation } from '@/lib/firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { evaluate } from 'mathjs';
+import { create, all } from 'mathjs';
 import { getAdaptiveMode } from '@/app/actions/calculator';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUser, useFirestore } from '@/firebase';
+
+const math = create(all);
 
 export type CalculatorMode = 'Standard' | 'Scientific';
 
@@ -40,7 +43,7 @@ export default function Calculator() {
     try {
       // Replace symbols for evaluation
       let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/');
-      const calculatedResult = evaluate(evalExpression);
+      const calculatedResult = math.evaluate(evalExpression);
       const formattedResult = String(Number(calculatedResult.toFixed(10)));
       setResult(formattedResult);
 
