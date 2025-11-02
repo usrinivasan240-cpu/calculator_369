@@ -23,8 +23,8 @@ export const keys: KeyDefinition[] = [
     { label: 'xʸ', value: '^', type: 'operator', mode: 'Scientific' },
     
     // Scientific Row 3
-    { label: '√', value: '√', type: 'function', mode: 'Scientific' },
-    { label: '∛', value: '∛', type: 'function', mode: 'Scientific' },
+    { label: '√', value: 'sqrt', type: 'function', mode: 'Scientific' },
+    { label: '∛', value: 'cbrt', type: 'function', mode: 'Scientific' },
     { label: '1/x', value: '1/x', type: 'function', mode: 'Scientific' },
     { label: 'n!', value: 'n!', type: 'function', mode: 'Scientific' },
 

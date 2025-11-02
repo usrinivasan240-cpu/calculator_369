@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import CalculatorDisplay from './display';
 import Keypad from './keypad';
@@ -67,7 +67,7 @@ export default function Calculator() {
         evalExpression += ')'.repeat(openParen - closeParen);
       }
       
-      if (/\b(sin|cos|tan|log|ln)\($/.test(evalExpression) && mode === 'Scientific') {
+      if (/\b(sin|cos|tan|log|ln|sqrt|cbrt)\($/.test(evalExpression) && mode === 'Scientific') {
         throw new Error("Incomplete function");
       }
 
@@ -109,13 +109,9 @@ export default function Calculator() {
       setExpression((prev) => `(${prev})^2`);
     } else if (value === 'x³') {
       setExpression((prev) => `(${prev})^3`);
-    } else if (value === '√') {
-      setExpression((prev) => `sqrt(${prev})`);
-    } else if (value === '∛') {
-        setExpression((prev) => `cbrt(${prev})`);
     } else if (value === 'n!') {
       setExpression((prev) => `factorial(${prev})`);
-    } else if (['sin', 'cos', 'tan', 'log', 'ln'].includes(value)) {
+    } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt'].includes(value)) {
         if (mode === 'Standard') setMode('Scientific');
         setExpression((prev) => prev + value + '(');
     } else {
