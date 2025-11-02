@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from '@/components/ui/button';
@@ -31,8 +32,22 @@ export default function Keypad({ onButtonClick, mode }: KeypadProps) {
 
     return (
         <div className="grid grid-cols-4 gap-2">
-            {mode === 'Scientific' && scientificKeys.map(renderKey)}
-            {standardKeys.map(renderKey)}
+            {mode === 'Scientific' && 
+                keys.filter(k => k.mode === 'Scientific').slice(0,12).map(renderKey)
+            }
+            {mode === 'Scientific' && 
+                <>
+                    {keys.filter(k => k.value === '(').map(renderKey)}
+                    {keys.filter(k => k.value === ')').map(renderKey)}
+                </>
+            }
+            {standardKeys.slice(0, 2).map(renderKey)}
+            {mode === 'Standard' && standardKeys.slice(2, 4).map(renderKey)}
+
+            {standardKeys.slice(4, 8).map(renderKey)}
+            {standardKeys.slice(8, 12).map(renderKey)}
+            {standardKeys.slice(12, 16).map(renderKey)}
+            {standardKeys.slice(16).map(renderKey)}
         </div>
     );
 }
