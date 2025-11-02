@@ -104,11 +104,11 @@ export default function Calculator() {
     } else if (value === '%') {
       setExpression((prev) => `(${prev}) / 100`);
     } else if (value === '1/x') {
-      setExpression((prev) => `1 / (${prev})`);
+        setExpression((prev) => prev + '1/(');
     } else if (value === 'x²') {
-      setExpression((prev) => `(${prev})^2`);
+        setExpression((prev) => prev + 'power(');
     } else if (value === 'x³') {
-      setExpression((prev) => `(${prev})^3`);
+        setExpression((prev) => prev + 'power(');
     } else if (value === 'n!') {
       setExpression((prev) => `factorial(${prev})`);
     } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt'].includes(value)) {
