@@ -61,7 +61,6 @@ export default function Calculator() {
 
   useEffect(() => {
     if (manualModeSwitch.current) {
-        manualModeSwitch.current = false;
         return;
     }
 
@@ -72,7 +71,7 @@ export default function Calculator() {
             }
         });
     } else if (mode !== 'Standard') {
-        setMode('Standard');
+        // do not switch back if expression is empty
     }
   }, [debouncedExpression, mode]);
 
@@ -80,7 +79,19 @@ export default function Calculator() {
     if (!expression) return;
     try {
       let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/');
+      
+      // Basic check for open parentheses to prevent errors
+      const openParen = (evalExpression.match(/\(/g) || []).length;
+      const closeParen = (evalExpression.match(/\)/g) || []).length;
+      if (openParen > closeParen) {
+        evalExpression += ')'.repeat(openParen - closeParen);
+      }
+
       const calculatedResult = math.evaluate(evalExpression);
+      // Avoid evaluating to functions or other non-numeric results
+      if (typeof calculatedResult === 'function' || typeof calculatedResult === 'undefined' || calculatedResult === null) {
+          throw new Error("Invalid evaluation result");
+      }
       const formattedResult = String(Number(calculatedResult.toFixed(10)));
       setResult(formattedResult);
 
@@ -133,6 +144,10 @@ export default function Calculator() {
           setMode(newMode);
           setExpression('');
           setResult('');
+          // After 1 second, allow automatic mode switching again
+          setTimeout(() => {
+            manualModeSwitch.current = false;
+          }, 1000);
       }
   }
 
