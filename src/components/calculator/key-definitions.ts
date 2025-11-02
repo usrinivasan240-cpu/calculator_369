@@ -26,6 +26,9 @@ export const keys: KeyDefinition[] = [
     { label: '∛', value: 'cbrt', type: 'function', mode: 'Scientific' },
     { label: '1/x', value: '1/x', type: 'function', mode: 'Scientific' },
     { label: 'n!', value: 'n!', type: 'function', mode: 'Scientific' },
+    { label: 'Bin', value: 'bin', type: 'function', mode: 'Scientific' },
+    
+    // Scientific Row 4
     { label: '(', value: '(', type: 'operator', mode: 'Scientific' },
     { label: ')', value: ')', type: 'operator', mode: 'Scientific' },
 
@@ -45,7 +48,7 @@ export const keys: KeyDefinition[] = [
     { label: '4', value: '4', type: 'number', mode: 'All' },
     { label: '5', value: '5', type: 'number', mode: 'All' },
     { label: '6', value: '6', type: 'number', mode: 'All' },
-    { label: '-', value: '-', type: 'operator', mode: 'All', className: 'bg-primary/80 hover:bg-primary text-primary-foreground' },
+    { label: '−', value: '−', type: 'operator', mode: 'All', className: 'bg-primary/80 hover:bg-primary text-primary-foreground' },
 
     // Numbers Row 3
     { label: '1', value: '1', type: 'number', mode: 'All' },

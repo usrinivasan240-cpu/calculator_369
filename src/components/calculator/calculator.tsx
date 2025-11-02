@@ -28,7 +28,7 @@ const createMathInstance = (mode: CalculatorMode): MathJsStatic => {
         const disabledFunctions = [
             'import', 'createUnit', 'parse', 'simplify', 'derivative',
             'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh',
-            'asinh', 'acosh', 'atanh', 'log', 'log10', 'ln', 'exp', 'sqrt', 'cbrt',
+            'asinh', 'acosh', 'atanh', 'log', 'log10', 'exp', 'sqrt', 'cbrt',
             'pow', 'factorial', 'eval'
         ];
         const replacements = disabledFunctions.reduce((acc, funcName) => {
@@ -67,13 +67,9 @@ export default function Calculator() {
         evalExpression += ')'.repeat(openParen - closeParen);
       }
       
-      if (/\b(sin|cos|tan|log|ln|sqrt|cbrt)\($/.test(evalExpression) && mode === 'Scientific') {
-        if (!evalExpression.endsWith(')')) {
-            // This is an incomplete function, so we should not try to evaluate it.
-            // We can either show an error or just wait for more input.
-            // For now, we will just not evaluate.
-            return;
-        }
+      if (/\b(sin|cos|tan|log|sqrt|cbrt)\($/.test(evalExpression) && mode === 'Scientific') {
+        // This is an incomplete function, don't evaluate yet
+        return;
       }
 
       const calculatedResult = math.evaluate(evalExpression);
@@ -85,7 +81,7 @@ export default function Calculator() {
       setResult(formattedResult);
 
       if (user && firestore) {
-        addCalculation(user.uid, { expression, result: formattedResult }, firestore);
+        addCalculation(user.uid, { expression, result: formattedResult, isScientific: mode === 'Scientific' }, firestore);
       }
     } catch (error) {
       setResult('Error');
@@ -116,6 +112,18 @@ export default function Calculator() {
                 return prev;
             }
         });
+    } else if (value === 'bin') {
+      try {
+        const currentValue = result || expression;
+        if (currentValue) {
+          const num = parseInt(currentValue, 10);
+          if (!isNaN(num)) {
+            setExpression(num.toString(2));
+          }
+        }
+      } catch (e) {
+        setResult('Error');
+      }
     } else if (value === '1/x') {
         setExpression((prev) => `1/(${prev})`);
     } else if (value === 'x²') {
@@ -124,13 +132,13 @@ export default function Calculator() {
         setExpression((prev) => `power(${prev}, 3)`);
     } else if (value === 'n!') {
       setExpression((prev) => `factorial(${prev})`);
-    } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt'].includes(value)) {
+    } else if (['sin', 'cos', 'tan', 'log', 'sqrt', 'cbrt'].includes(value)) {
         if (mode === 'Standard') setMode('Scientific');
         setExpression((prev) => prev + value + '(');
     } else {
       setExpression((prev) => prev + value);
     }
-  }, [handleCalculate, mode, mathInstances]);
+  }, [handleCalculate, mode, mathInstances, result, expression]);
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {

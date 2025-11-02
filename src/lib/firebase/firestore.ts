@@ -7,6 +7,7 @@ export interface CalculationRecord {
   result: string;
   timestamp: any;
   userId?: string;
+  isScientific?: boolean;
 }
 
 export const addCalculation = (userId: string, calc: Omit<CalculationRecord, 'id' | 'timestamp' | 'userId'>, db: Firestore) => {
