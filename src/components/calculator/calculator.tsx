@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import CalculatorDisplay from './display';
 import Keypad from './keypad';
@@ -26,14 +26,18 @@ const createMathInstance = (mode: CalculatorMode) => {
     math = create(all, config);
 
     if (mode === 'Standard') {
-        math.import({
-            import: undefined,
-            createUnit: undefined,
-            evaluate: undefined,
-            parse: undefined,
-            simplify: undefined,
-            derivative: undefined,
-        }, { override: true });
+        const disabledFunctions = [
+            'import', 'createUnit', 'evaluate', 'parse', 'simplify', 'derivative',
+            'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh',
+            'asinh', 'acosh', 'atanh', 'log', 'log10', 'ln', 'exp', 'sqrt', 'cbrt',
+            'pow', 'factorial'
+        ];
+        const replacements = disabledFunctions.reduce((acc, funcName) => {
+            acc[funcName] = () => { throw new Error(`Function ${funcName} is not available in Standard mode`); };
+            return acc;
+        }, {} as Record<string, any>);
+
+        math.import(replacements, { override: true });
     }
 };
 
@@ -43,7 +47,8 @@ export default function Calculator() {
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('');
   const [mode, setMode] = useState<CalculatorMode>('Standard');
-  const [isAiSwitching, setIsAiSwitching] = useState(false);
+  const manualModeSwitch = useRef(false);
+
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -55,18 +60,21 @@ export default function Calculator() {
   }, [mode]);
 
   useEffect(() => {
-    if (debouncedExpression && !isAiSwitching) {
+    if (manualModeSwitch.current) {
+        manualModeSwitch.current = false;
+        return;
+    }
+
+    if (debouncedExpression) {
         getAdaptiveMode(debouncedExpression).then(res => {
             if (res.mode !== mode) {
-                setIsAiSwitching(true);
                 setMode(res.mode);
-                setTimeout(() => setIsAiSwitching(false), 100);
             }
         });
-    } else if (!debouncedExpression) {
+    } else if (mode !== 'Standard') {
         setMode('Standard');
     }
-  }, [debouncedExpression, mode, isAiSwitching]);
+  }, [debouncedExpression, mode]);
 
   const handleCalculate = useCallback(async () => {
     if (!expression) return;
@@ -121,6 +129,7 @@ export default function Calculator() {
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
+          manualModeSwitch.current = true;
           setMode(newMode);
           setExpression('');
           setResult('');
