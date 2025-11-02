@@ -69,7 +69,10 @@ export default function Calculator() {
       
       if (/\b(sin|cos|tan|log|ln|sqrt|cbrt)\($/.test(evalExpression) && mode === 'Scientific') {
         if (!evalExpression.endsWith(')')) {
-            throw new Error("Incomplete function");
+            // This is an incomplete function, so we should not try to evaluate it.
+            // We can either show an error or just wait for more input.
+            // For now, we will just not evaluate.
+            return;
         }
       }
 
@@ -110,7 +113,7 @@ export default function Calculator() {
                 const currentVal = math.evaluate(prev);
                 return String(currentVal / 100);
             } catch {
-                return prev; // Or show an error
+                return prev;
             }
         });
     } else if (value === '1/x') {
