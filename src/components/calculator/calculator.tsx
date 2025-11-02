@@ -7,12 +7,35 @@ import CalculatorDisplay from './display';
 import Keypad from './keypad';
 import { addCalculation } from '@/lib/firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { create, all } from 'mathjs';
+import { create, all, type MathJsStatic } from 'mathjs';
 import { getAdaptiveMode } from '@/app/actions/calculator';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUser, useFirestore } from '@/firebase';
 
-const math = create(all);
+let math: MathJsStatic;
+
+const createMathInstance = (mode: CalculatorMode) => {
+    const config = {
+        epsilon: 1e-12,
+        matrix: 'Matrix',
+        number: 'number',
+        precision: 64,
+        predictable: false,
+        randomSeed: null
+    };
+    math = create(all, config);
+
+    if (mode === 'Standard') {
+        math.import({
+            import: undefined,
+            createUnit: undefined,
+            evaluate: undefined,
+            parse: undefined,
+            simplify: undefined,
+            derivative: undefined,
+        }, { override: true });
+    }
+};
 
 export type CalculatorMode = 'Standard' | 'Scientific';
 
@@ -20,6 +43,7 @@ export default function Calculator() {
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('');
   const [mode, setMode] = useState<CalculatorMode>('Standard');
+  const [isAiSwitching, setIsAiSwitching] = useState(false);
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -27,27 +51,32 @@ export default function Calculator() {
   const debouncedExpression = useDebounce(expression, 500);
 
   useEffect(() => {
-    if (debouncedExpression) {
-      getAdaptiveMode(debouncedExpression).then(res => {
-        if (res.mode !== mode) {
-          setMode(res.mode);
-        }
-      });
-    } else {
+    createMathInstance(mode);
+  }, [mode]);
+
+  useEffect(() => {
+    if (debouncedExpression && !isAiSwitching) {
+        getAdaptiveMode(debouncedExpression).then(res => {
+            if (res.mode !== mode) {
+                setIsAiSwitching(true);
+                setMode(res.mode);
+                setTimeout(() => setIsAiSwitching(false), 100);
+            }
+        });
+    } else if (!debouncedExpression) {
         setMode('Standard');
     }
-  }, [debouncedExpression, mode]);
+  }, [debouncedExpression, mode, isAiSwitching]);
 
   const handleCalculate = useCallback(async () => {
     if (!expression) return;
     try {
-      // Replace symbols for evaluation
       let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/');
       const calculatedResult = math.evaluate(evalExpression);
       const formattedResult = String(Number(calculatedResult.toFixed(10)));
       setResult(formattedResult);
 
-      if (user) {
+      if (user && firestore) {
         addCalculation(user.uid, { expression, result: formattedResult }, firestore);
       }
     } catch (error) {
@@ -90,13 +119,21 @@ export default function Calculator() {
     }
   }, [handleCalculate]);
 
+  const handleModeChange = (newMode: CalculatorMode) => {
+      if (mode !== newMode) {
+          setMode(newMode);
+          setExpression('');
+          setResult('');
+      }
+  }
+
   return (
     <Card className="w-full max-w-lg mx-auto shadow-2xl">
         <CardHeader>
             <CalculatorDisplay expression={expression} result={result} />
         </CardHeader>
         <CardContent>
-            <Tabs value={mode} onValueChange={(value) => setMode(value as CalculatorMode)} className="w-full mb-4">
+            <Tabs value={mode} onValueChange={(value) => handleModeChange(value as CalculatorMode)} className="w-full mb-4">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="Standard">Standard</TabsTrigger>
                     <TabsTrigger value="Scientific">Scientific</TabsTrigger>
