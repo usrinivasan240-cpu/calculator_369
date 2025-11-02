@@ -68,7 +68,9 @@ export default function Calculator() {
       }
       
       if (/\b(sin|cos|tan|log|ln|sqrt|cbrt)\($/.test(evalExpression) && mode === 'Scientific') {
-        throw new Error("Incomplete function");
+        if (!evalExpression.endsWith(')')) {
+            throw new Error("Incomplete function");
+        }
       }
 
       const calculatedResult = math.evaluate(evalExpression);
@@ -102,13 +104,21 @@ export default function Calculator() {
     } else if (value === '⌫') {
       setExpression((prev) => prev.slice(0, -1));
     } else if (value === '%') {
-      setExpression((prev) => `(${prev}) / 100`);
+        setExpression((prev) => {
+            try {
+                const math = mathInstances[mode];
+                const currentVal = math.evaluate(prev);
+                return String(currentVal / 100);
+            } catch {
+                return prev; // Or show an error
+            }
+        });
     } else if (value === '1/x') {
-        setExpression((prev) => prev + '1/(');
+        setExpression((prev) => `1/(${prev})`);
     } else if (value === 'x²') {
-        setExpression((prev) => prev + 'power(');
+        setExpression((prev) => `power(${prev}, 2)`);
     } else if (value === 'x³') {
-        setExpression((prev) => prev + 'power(');
+        setExpression((prev) => `power(${prev}, 3)`);
     } else if (value === 'n!') {
       setExpression((prev) => `factorial(${prev})`);
     } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt'].includes(value)) {
@@ -117,7 +127,7 @@ export default function Calculator() {
     } else {
       setExpression((prev) => prev + value);
     }
-  }, [handleCalculate, mode]);
+  }, [handleCalculate, mode, mathInstances]);
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
