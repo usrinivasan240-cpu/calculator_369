@@ -3,13 +3,14 @@ import {
   signInWithPopup, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
-  signOut as firebaseSignOut
+  signOut as firebaseSignOut,
+  Auth
 } from "firebase/auth";
-import { auth } from "./config";
+import { auth as defaultAuth } from "./config";
 
 const googleProvider = new GoogleAuthProvider();
 
-export const signInWithGoogle = async () => {
+export const signInWithGoogle = async (auth: Auth = defaultAuth) => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
@@ -19,7 +20,7 @@ export const signInWithGoogle = async () => {
   }
 };
 
-export const signUpWithEmail = async (email: string, password: string) => {
+export const signUpWithEmail = async (email: string, password: string, auth: Auth = defaultAuth) => {
     try {
         const result = await createUserWithEmailAndPassword(auth, email, password);
         return result.user;
@@ -29,7 +30,7 @@ export const signUpWithEmail = async (email: string, password: string) => {
     }
 }
 
-export const signInWithEmail = async (email: string, password: string) => {
+export const signInWithEmail = async (email: string, password: string, auth: Auth = defaultAuth) => {
     try {
         const result = await signInWithEmailAndPassword(auth, email, password);
         return result.user;
@@ -39,7 +40,7 @@ export const signInWithEmail = async (email: string, password: string) => {
     }
 }
 
-export const signOut = async () => {
+export const signOut = async (auth: Auth = defaultAuth) => {
   try {
     await firebaseSignOut(auth);
   } catch (error) {

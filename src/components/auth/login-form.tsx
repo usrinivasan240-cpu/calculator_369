@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/firebase/auth"
 import { Chrome } from "lucide-react"
+import { useAuth as useFirebaseAuth } from "@/hooks/use-auth"
+import { type Auth } from "firebase/auth"
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
@@ -27,16 +29,17 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
   const [isGoogleLoading, setIsGoogleLoading] = React.useState<boolean>(false)
   const { toast } = useToast()
   const router = useRouter()
+  const auth = useFirebaseAuth() as Auth;
 
   async function onSubmit(data: FormData) {
     setIsLoading(true)
     try {
-      await signInWithEmail(data.email, data.password)
+      await signInWithEmail(data.email, data.password, auth)
       router.push('/')
     } catch (error: any) {
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
          try {
-            await signUpWithEmail(data.email, data.password);
+            await signUpWithEmail(data.email, data.password, auth);
             toast({
                 title: "Account Created",
                 description: "Welcome! Your new account has been created.",
@@ -64,7 +67,7 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
   async function onGoogleSignIn() {
     setIsGoogleLoading(true)
     try {
-      await signInWithGoogle()
+      await signInWithGoogle(auth)
       router.push('/')
     } catch (error: any) {
       toast({

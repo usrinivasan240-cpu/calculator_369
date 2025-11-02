@@ -1,6 +1,8 @@
 "use client";
-import { useUser } from '@/firebase';
+import { useUser as useFirebaseUser } from '@/firebase';
 
 export const useAuth = () => {
-    return useUser();
+    return useFirebaseUser();
 };
+
+export const useUser = useAuth;
