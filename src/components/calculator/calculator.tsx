@@ -78,7 +78,7 @@ export default function Calculator() {
   const handleCalculate = useCallback(async () => {
     if (!expression) return;
     try {
-      let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/');
+      let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
       
       // Basic check for open parentheses to prevent errors
       const openParen = (evalExpression.match(/\(/g) || []).length;
