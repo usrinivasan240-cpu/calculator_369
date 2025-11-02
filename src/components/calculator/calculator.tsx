@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import CalculatorDisplay from './display';
 import Keypad from './keypad';
@@ -11,9 +11,9 @@ import { create, all, type MathJsStatic } from 'mathjs';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUser, useFirestore } from '@/firebase';
 
-let math: MathJsStatic;
+export type CalculatorMode = 'Standard' | 'Scientific';
 
-const createMathInstance = (mode: CalculatorMode) => {
+const createMathInstance = (mode: CalculatorMode): MathJsStatic => {
     const config = {
         epsilon: 1e-12,
         matrix: 'Matrix',
@@ -22,7 +22,7 @@ const createMathInstance = (mode: CalculatorMode) => {
         predictable: false,
         randomSeed: null
     };
-    math = create(all, config);
+    const math = create(all, config);
 
     if (mode === 'Standard') {
         const disabledFunctions = [
@@ -38,9 +38,8 @@ const createMathInstance = (mode: CalculatorMode) => {
 
         math.import(replacements, { override: true });
     }
+    return math;
 };
-
-export type CalculatorMode = 'Standard' | 'Scientific';
 
 export default function Calculator() {
   const [expression, setExpression] = useState('');
@@ -51,13 +50,15 @@ export default function Calculator() {
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  useEffect(() => {
-    createMathInstance(mode);
-  }, [mode]);
+  const mathInstances = useMemo(() => ({
+    Standard: createMathInstance('Standard'),
+    Scientific: createMathInstance('Scientific')
+  }), []);
 
   const handleCalculate = useCallback(async () => {
     if (!expression) return;
     try {
+      const math = mathInstances[mode];
       let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
       
       const openParen = (evalExpression.match(/\(/g) || []).length;
@@ -66,8 +67,7 @@ export default function Calculator() {
         evalExpression += ')'.repeat(openParen - closeParen);
       }
       
-      // Prevent evaluation of incomplete functions
-      if (/\b(sin|cos|tan|log|ln)\($/.test(evalExpression)) {
+      if (/\b(sin|cos|tan|log|ln)\($/.test(evalExpression) && mode === 'Scientific') {
         throw new Error("Incomplete function");
       }
 
@@ -90,7 +90,7 @@ export default function Calculator() {
         description: "Please check your calculation.",
       });
     }
-  }, [expression, user, toast, firestore]);
+  }, [expression, user, toast, firestore, mode, mathInstances]);
 
   const handleButtonClick = useCallback((value: string) => {
     setResult('');
@@ -116,11 +116,12 @@ export default function Calculator() {
     } else if (value === 'n!') {
       setExpression((prev) => `factorial(${prev})`);
     } else if (['sin', 'cos', 'tan', 'log', 'ln'].includes(value)) {
+        if (mode === 'Standard') setMode('Scientific');
         setExpression((prev) => prev + value + '(');
     } else {
       setExpression((prev) => prev + value);
     }
-  }, [handleCalculate]);
+  }, [handleCalculate, mode]);
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
