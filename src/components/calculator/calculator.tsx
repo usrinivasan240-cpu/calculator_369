@@ -8,7 +8,6 @@ import Keypad from './keypad';
 import { addCalculation } from '@/lib/firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { create, all, type MathJsStatic } from 'mathjs';
-import { getAdaptiveMode } from '@/app/actions/calculator';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUser, useFirestore } from '@/firebase';
 
@@ -27,10 +26,10 @@ const createMathInstance = (mode: CalculatorMode) => {
 
     if (mode === 'Standard') {
         const disabledFunctions = [
-            'import', 'createUnit', 'evaluate', 'parse', 'simplify', 'derivative',
+            'import', 'createUnit', 'parse', 'simplify', 'derivative',
             'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh',
             'asinh', 'acosh', 'atanh', 'log', 'log10', 'ln', 'exp', 'sqrt', 'cbrt',
-            'pow', 'factorial'
+            'pow', 'factorial', 'eval'
         ];
         const replacements = disabledFunctions.reduce((acc, funcName) => {
             acc[funcName] = () => { throw new Error(`Function ${funcName} is not available in Standard mode`); };
@@ -47,33 +46,14 @@ export default function Calculator() {
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('');
   const [mode, setMode] = useState<CalculatorMode>('Standard');
-  const manualModeSwitch = useRef(false);
 
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const debouncedExpression = useDebounce(expression, 500);
-
   useEffect(() => {
     createMathInstance(mode);
   }, [mode]);
-
-  useEffect(() => {
-    if (manualModeSwitch.current) {
-        return;
-    }
-
-    if (debouncedExpression) {
-        getAdaptiveMode(debouncedExpression).then(res => {
-            if (res.mode !== mode) {
-                setMode(res.mode);
-            }
-        });
-    } else if (mode !== 'Standard') {
-        // do not switch back if expression is empty
-    }
-  }, [debouncedExpression, mode]);
 
   const handleCalculate = useCallback(async () => {
     if (!expression) return;
@@ -140,14 +120,9 @@ export default function Calculator() {
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
-          manualModeSwitch.current = true;
           setMode(newMode);
           setExpression('');
           setResult('');
-          // After 1 second, allow automatic mode switching again
-          setTimeout(() => {
-            manualModeSwitch.current = false;
-          }, 1000);
       }
   }
 
@@ -167,18 +142,4 @@ export default function Calculator() {
         </CardContent>
     </Card>
   );
-}
-
-// Debounce hook
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-  return debouncedValue;
 }
