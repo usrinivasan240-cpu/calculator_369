@@ -12,8 +12,10 @@ interface KeypadProps {
 }
 
 export default function Keypad({ onButtonClick, mode }: KeypadProps) {
+    
     const scientificKeys = keys.filter(key => key.mode === 'Scientific');
-    const standardKeys = keys.filter(key => key.mode === 'All');
+    const numberKeys = keys.filter(key => key.type === 'number');
+    const operatorKeys = keys.filter(key => key.type === 'operator' || key.type === 'action' || key.type === 'function');
 
     const renderKey = (key: (typeof keys)[number]) => (
         <motion.div key={key.value} layout className={key.className || ''}>
@@ -31,12 +33,18 @@ export default function Keypad({ onButtonClick, mode }: KeypadProps) {
     );
 
     return (
-        <div className="grid grid-cols-4 gap-2">
-            {mode === 'Scientific' && 
-                scientificKeys.map(renderKey)
-            }
-            
-            {standardKeys.map(renderKey)}
+        <div className="grid grid-cols-1 gap-2">
+            {mode === 'Scientific' && (
+                <div className="grid grid-cols-4 gap-2">
+                    {scientificKeys.map(renderKey)}
+                </div>
+            )}
+            <div className="grid grid-cols-4 gap-2">
+                {keys.filter(k => k.mode === 'All' && k.type !== 'number' && k.value !== '=' && k.value !== '.').map(renderKey)}
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+                 {keys.filter(k => k.mode === 'All' && (k.type === 'number' || k.value === '.' || k.value === '=')).map(renderKey)}
+            </div>
         </div>
     );
 }
