@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import CalculatorDisplay from './display';
 import Keypad from './keypad';
@@ -60,15 +60,19 @@ export default function Calculator() {
     try {
       let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
       
-      // Basic check for open parentheses to prevent errors
       const openParen = (evalExpression.match(/\(/g) || []).length;
       const closeParen = (evalExpression.match(/\)/g) || []).length;
       if (openParen > closeParen) {
         evalExpression += ')'.repeat(openParen - closeParen);
       }
+      
+      // Prevent evaluation of incomplete functions
+      if (/\b(sin|cos|tan|log|ln)\($/.test(evalExpression)) {
+        throw new Error("Incomplete function");
+      }
 
       const calculatedResult = math.evaluate(evalExpression);
-      // Avoid evaluating to functions or other non-numeric results
+
       if (typeof calculatedResult === 'function' || typeof calculatedResult === 'undefined' || calculatedResult === null) {
           throw new Error("Invalid evaluation result");
       }
