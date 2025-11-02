@@ -13,7 +13,7 @@ import { useUser, useFirestore } from '@/firebase';
 
 export type CalculatorMode = 'Standard' | 'Scientific';
 
-const createMathInstance = (mode: CalculatorMode): MathJsStatic => {
+const createMathInstance = (): MathJsStatic => {
     const config = {
         epsilon: 1e-12,
         matrix: 'Matrix',
@@ -23,21 +23,6 @@ const createMathInstance = (mode: CalculatorMode): MathJsStatic => {
         randomSeed: null
     };
     const math = create(all, config);
-
-    if (mode === 'Standard') {
-        const disabledFunctions = [
-            'import', 'createUnit', 'parse', 'simplify', 'derivative',
-            'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh',
-            'asinh', 'acosh', 'atanh', 'log', 'log10', 'exp', 'sqrt', 'cbrt',
-            'pow', 'factorial', 'eval'
-        ];
-        const replacements = disabledFunctions.reduce((acc, funcName) => {
-            acc[funcName] = () => { throw new Error(`Function ${funcName} is not available in Standard mode`); };
-            return acc;
-        }, {} as Record<string, any>);
-
-        math.import(replacements, { override: true });
-    }
     return math;
 };
 
@@ -50,15 +35,11 @@ export default function Calculator() {
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const mathInstances = useMemo(() => ({
-    Standard: createMathInstance('Standard'),
-    Scientific: createMathInstance('Scientific')
-  }), []);
+  const mathInstance = useMemo(() => createMathInstance(), []);
 
   const handleCalculate = useCallback(async () => {
     if (!expression) return;
     try {
-      const math = mathInstances[mode];
       let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
       
       const openParen = (evalExpression.match(/\(/g) || []).length;
@@ -67,12 +48,7 @@ export default function Calculator() {
         evalExpression += ')'.repeat(openParen - closeParen);
       }
       
-      if (/\b(sin|cos|tan|log|sqrt|cbrt)\($/.test(evalExpression) && mode === 'Scientific') {
-        // This is an incomplete function, don't evaluate yet
-        return;
-      }
-
-      const calculatedResult = math.evaluate(evalExpression);
+      const calculatedResult = mathInstance.evaluate(evalExpression);
 
       if (typeof calculatedResult === 'function' || typeof calculatedResult === 'undefined' || calculatedResult === null) {
           throw new Error("Invalid evaluation result");
@@ -91,7 +67,7 @@ export default function Calculator() {
         description: "Please check your calculation.",
       });
     }
-  }, [expression, user, toast, firestore, mode, mathInstances]);
+  }, [expression, user, toast, firestore, mode, mathInstance]);
 
   const handleButtonClick = useCallback((value: string) => {
     setResult('');
@@ -105,8 +81,7 @@ export default function Calculator() {
     } else if (value === '%') {
         setExpression((prev) => {
             try {
-                const math = mathInstances[mode];
-                const currentVal = math.evaluate(prev);
+                const currentVal = mathInstance.evaluate(prev);
                 return String(currentVal / 100);
             } catch {
                 return prev;
@@ -129,20 +104,20 @@ export default function Calculator() {
         setExpression((prev) => prev + '1/(');
     } else if (value === 'x²') {
         if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => prev + 'power(');
+        setExpression((prev) => prev + 'square(');
     } else if (value === 'x³') {
         if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => prev + 'power(');
+        setExpression((prev) => prev + 'cube(');
     } else if (value === 'n!') {
       if (mode === 'Standard') setMode('Scientific');
-      setExpression((prev) => `factorial(${prev})`);
+      setExpression((prev) => prev + 'factorial(');
     } else if (['sin', 'cos', 'tan', 'log', 'sqrt', 'cbrt'].includes(value)) {
         if (mode === 'Standard') setMode('Scientific');
         setExpression((prev) => prev + value + '(');
     } else {
       setExpression((prev) => prev + value);
     }
-  }, [handleCalculate, mode, mathInstances, result, expression]);
+  }, [handleCalculate, mode, mathInstance, result, expression]);
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
