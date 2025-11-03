@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import CalculatorDisplay from './display';
 import Keypad from './keypad';
@@ -122,6 +122,42 @@ export default function Calculator() {
           setResult('');
       }
   }
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+        const { key } = event;
+        if (/[0-9]/.test(key)) {
+            handleButtonClick(key);
+        } else if (key === '+') {
+            handleButtonClick('+');
+        } else if (key === '-') {
+            handleButtonClick('-');
+        } else if (key === '*') {
+            handleButtonClick('×');
+        } else if (key === '/') {
+            handleButtonClick('÷');
+        } else if (key === '.') {
+            handleButtonClick('.');
+        } else if (key === 'Enter' || key === '=') {
+            event.preventDefault(); // Prevent form submission or other default actions
+            handleButtonClick('=');
+        } else if (key === 'Backspace') {
+            handleButtonClick('⌫');
+        } else if (key === 'Escape') {
+            handleButtonClick('C');
+        } else if (key === '(') {
+            handleButtonClick('(');
+        } else if (key === ')') {
+            handleButtonClick(')');
+        }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleButtonClick]);
 
   return (
     <Card className="w-full max-w-lg mx-auto shadow-2xl">
