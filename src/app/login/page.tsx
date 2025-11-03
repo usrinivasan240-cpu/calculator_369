@@ -23,7 +23,6 @@ export default function LoginPage() {
             <p className="text-lg text-primary-foreground">
               &ldquo;The smart calculator that remembers your every move. Syncs across devices, powered by Firebase.&rdquo;
             </p>
-            <footer className="text-sm text-primary-foreground/80">From the Future</footer>
           </blockquote>
         </div>
       </div>
