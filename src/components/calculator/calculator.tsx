@@ -5,11 +5,9 @@ import { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import CalculatorDisplay from './display';
 import Keypad from './keypad';
-import { addCalculation } from '@/lib/firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { create, all, type MathJsStatic } from 'mathjs';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useUser, useFirestore } from '@/firebase';
 
 export type CalculatorMode = 'Standard' | 'Scientific';
 
@@ -31,8 +29,6 @@ export default function Calculator() {
   const [result, setResult] = useState('');
   const [mode, setMode] = useState<CalculatorMode>('Standard');
 
-  const { user } = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
 
   const mathInstance = useMemo(() => createMathInstance(), []);
@@ -56,9 +52,6 @@ export default function Calculator() {
       const formattedResult = String(Number(calculatedResult.toFixed(10)));
       setResult(formattedResult);
 
-      if (user && firestore) {
-        addCalculation(user.uid, { expression, result: formattedResult, isScientific: mode === 'Scientific' }, firestore);
-      }
     } catch (error) {
       setResult('Error');
       toast({
@@ -67,7 +60,7 @@ export default function Calculator() {
         description: "Please check your calculation.",
       });
     }
-  }, [expression, user, toast, firestore, mode, mathInstance]);
+  }, [expression, toast, mode, mathInstance]);
 
   const handleButtonClick = useCallback((value: string) => {
     setResult('');
@@ -97,9 +90,6 @@ export default function Calculator() {
             const originalExpression = `dec_to_bin(${currentValue})`;
             setExpression(originalExpression);
             setResult(binaryResult);
-            if (user && firestore) {
-              addCalculation(user.uid, { expression: originalExpression, result: binaryResult, isScientific: mode === 'Scientific' }, firestore);
-            }
           }
         }
       } catch (e) {
@@ -117,13 +107,13 @@ export default function Calculator() {
     } else if (value === 'n!') {
       if (mode === 'Standard') setMode('Scientific');
       setExpression((prev) => prev + 'factorial(');
-    } else if (['sin', 'cos', 'tan', 'log', 'sqrt', 'cbrt'].includes(value)) {
-        if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => prev + value + '(');
+    } else if (['sin', 'cos', 'tan', 'log', 'sqrt', 'cbrt', '(', ')'].includes(value)) {
+        if (mode === 'Standard' && value !== '(' && value !== ')') setMode('Scientific');
+        setExpression((prev) => prev + value);
     } else {
       setExpression((prev) => prev + value);
     }
-  }, [handleCalculate, mode, mathInstance, result, expression, user, firestore]);
+  }, [handleCalculate, mode, mathInstance, result, expression]);
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {

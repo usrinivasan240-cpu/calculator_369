@@ -2,7 +2,6 @@
 
 import { Rocket } from 'lucide-react';
 import Link from 'next/link';
-import { UserNav } from '@/components/auth/user-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export function Header() {
@@ -17,7 +16,6 @@ export function Header() {
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-4">
           <ThemeToggle />
-          <UserNav />
         </div>
       </div>
     </header>
