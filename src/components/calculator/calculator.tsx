@@ -8,9 +8,6 @@ import Keypad from './keypad';
 import { useToast } from '@/hooks/use-toast';
 import { create, all, type MathJsStatic } from 'mathjs';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useUser } from '@/hooks/use-auth';
-import { useFirestore } from '@/firebase';
-import { addCalculation } from '@/lib/firebase/firestore';
 
 export type CalculatorMode = 'Standard' | 'Scientific';
 
@@ -33,8 +30,6 @@ export default function Calculator() {
   const [mode, setMode] = useState<CalculatorMode>('Standard');
 
   const { toast } = useToast();
-  const { user } = useUser();
-  const db = useFirestore();
 
   const mathInstance = useMemo(() => createMathInstance(), []);
 
@@ -57,14 +52,6 @@ export default function Calculator() {
       const formattedResult = String(Number(calculatedResult.toFixed(10)));
       setResult(formattedResult);
 
-      if (user) {
-        addCalculation(user.uid, {
-          expression: expression,
-          result: formattedResult,
-          isScientific: mode === 'Scientific',
-        }, db);
-      }
-
     } catch (error) {
       setResult('Error');
       toast({
@@ -73,7 +60,7 @@ export default function Calculator() {
         description: "Please check your calculation.",
       });
     }
-  }, [expression, toast, mode, mathInstance, user, db]);
+  }, [expression, toast, mode, mathInstance]);
 
   const handleButtonClick = useCallback((value: string) => {
     setResult('');
@@ -89,14 +76,6 @@ export default function Calculator() {
             try {
                 const currentVal = mathInstance.evaluate(prev);
                 const newExpression = String(currentVal / 100);
-
-                if (user) {
-                  addCalculation(user.uid, {
-                    expression: `${prev}%`,
-                    result: newExpression,
-                    isScientific: mode === 'Scientific',
-                  }, db);
-                }
                 return newExpression;
             } catch {
                 return prev;
@@ -112,13 +91,6 @@ export default function Calculator() {
             const originalExpression = `dec_to_bin(${currentValue})`;
             setExpression(originalExpression);
             setResult(binaryResult);
-            if (user) {
-              addCalculation(user.uid, {
-                expression: originalExpression,
-                result: binaryResult,
-                isScientific: true,
-              }, db);
-            }
           }
         }
       } catch (e) {
@@ -144,7 +116,7 @@ export default function Calculator() {
     } else {
       setExpression((prev) => prev + value);
     }
-  }, [handleCalculate, mode, mathInstance, result, expression, user, db]);
+  }, [handleCalculate, mode, mathInstance, result, expression]);
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
