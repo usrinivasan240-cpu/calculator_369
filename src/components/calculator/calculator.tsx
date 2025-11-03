@@ -8,6 +8,9 @@ import Keypad from './keypad';
 import { useToast } from '@/hooks/use-toast';
 import { create, all, type MathJsStatic } from 'mathjs';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useUser } from '@/hooks/use-auth';
+import { useFirestore } from '@/firebase';
+import { addCalculation } from '@/lib/firebase/firestore';
 
 export type CalculatorMode = 'Standard' | 'Scientific';
 
@@ -30,6 +33,8 @@ export default function Calculator() {
   const [mode, setMode] = useState<CalculatorMode>('Standard');
 
   const { toast } = useToast();
+  const { user } = useUser();
+  const db = useFirestore();
 
   const mathInstance = useMemo(() => createMathInstance(), []);
 
@@ -52,6 +57,14 @@ export default function Calculator() {
       const formattedResult = String(Number(calculatedResult.toFixed(10)));
       setResult(formattedResult);
 
+      if (user) {
+        addCalculation(user.uid, {
+          expression: expression,
+          result: formattedResult,
+          isScientific: mode === 'Scientific',
+        }, db);
+      }
+
     } catch (error) {
       setResult('Error');
       toast({
@@ -60,7 +73,7 @@ export default function Calculator() {
         description: "Please check your calculation.",
       });
     }
-  }, [expression, toast, mode, mathInstance]);
+  }, [expression, toast, mode, mathInstance, user, db]);
 
   const handleButtonClick = useCallback((value: string) => {
     setResult('');
@@ -75,7 +88,16 @@ export default function Calculator() {
         setExpression((prev) => {
             try {
                 const currentVal = mathInstance.evaluate(prev);
-                return String(currentVal / 100);
+                const newExpression = String(currentVal / 100);
+
+                if (user) {
+                  addCalculation(user.uid, {
+                    expression: `${prev}%`,
+                    result: newExpression,
+                    isScientific: mode === 'Scientific',
+                  }, db);
+                }
+                return newExpression;
             } catch {
                 return prev;
             }
@@ -90,6 +112,13 @@ export default function Calculator() {
             const originalExpression = `dec_to_bin(${currentValue})`;
             setExpression(originalExpression);
             setResult(binaryResult);
+            if (user) {
+              addCalculation(user.uid, {
+                expression: originalExpression,
+                result: binaryResult,
+                isScientific: true,
+              }, db);
+            }
           }
         }
       } catch (e) {
@@ -107,13 +136,15 @@ export default function Calculator() {
     } else if (value === 'n!') {
       if (mode === 'Standard') setMode('Scientific');
       setExpression((prev) => prev + 'factorial(');
-    } else if (['sin', 'cos', 'tan', 'log', 'sqrt', 'cbrt', '(', ')'].includes(value)) {
-        if (mode === 'Standard' && value !== '(' && value !== ')') setMode('Scientific');
+    } else if (['sin', 'cos', 'tan', 'log', 'sqrt', 'cbrt'].includes(value)) {
+        if (mode === 'Standard') setMode('Scientific');
+        setExpression((prev) => prev + value + '(');
+    } else if (['(', ')'].includes(value)) {
         setExpression((prev) => prev + value);
     } else {
       setExpression((prev) => prev + value);
     }
-  }, [handleCalculate, mode, mathInstance, result, expression]);
+  }, [handleCalculate, mode, mathInstance, result, expression, user, db]);
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
@@ -131,7 +162,7 @@ export default function Calculator() {
         } else if (key === '+') {
             handleButtonClick('+');
         } else if (key === '-') {
-            handleButtonClick('-');
+            handleButtonClick('−');
         } else if (key === '*') {
             handleButtonClick('×');
         } else if (key === '/') {
@@ -168,6 +199,7 @@ export default function Calculator() {
             <Tabs value={mode} onValueChange={(value) => handleModeChange(value as CalculatorMode)} className="w-full mb-4">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="Standard">Standard</TabsTrigger>
+
                     <TabsTrigger value="Scientific">Scientific</TabsTrigger>
                 </TabsList>
             </Tabs>
