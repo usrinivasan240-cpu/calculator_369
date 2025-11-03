@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/firebase/auth"
 import { Chrome } from "lucide-react"
-import { useAuth as useFirebaseAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/firebase"
 import { type Auth } from "firebase/auth"
 
 const formSchema = z.object({
@@ -29,7 +29,7 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
   const [isGoogleLoading, setIsGoogleLoading] = React.useState<boolean>(false)
   const { toast } = useToast()
   const router = useRouter()
-  const auth = useFirebaseAuth() as Auth;
+  const auth = useAuth();
 
   async function onSubmit(data: FormData) {
     setIsLoading(true)
