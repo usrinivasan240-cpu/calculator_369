@@ -98,16 +98,16 @@ export default function Calculator() {
       }
     } else if (value === '1/x') {
         if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => prev + '1/(');
+        setExpression((prev) => '1/(' + prev);
     } else if (value === 'x²') {
         if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => prev + 'square(');
+        setExpression((prev) => 'square(' + prev);
     } else if (value === 'x³') {
         if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => prev + 'cube(');
+        setExpression((prev) => 'cube(' + prev);
     } else if (value === 'n!') {
       if (mode === 'Standard') setMode('Scientific');
-      setExpression((prev) => prev + 'factorial(');
+      setExpression((prev) => 'factorial(' + prev);
     } else if (['sin', 'cos', 'tan', 'log', 'sqrt', 'cbrt'].includes(value)) {
         if (mode === 'Standard') setMode('Scientific');
         setExpression((prev) => prev + value + '(');
