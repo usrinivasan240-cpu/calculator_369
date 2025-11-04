@@ -60,7 +60,7 @@ export default function Calculator() {
         description: "Please check your calculation.",
       });
     }
-  }, [expression, toast, mode, mathInstance]);
+  }, [expression, toast, mathInstance]);
 
   const handleButtonClick = useCallback((value: string) => {
     setResult('');
@@ -81,16 +81,26 @@ export default function Calculator() {
                 return prev;
             }
         });
-    } else if (value === 'bin') {
+    } else if (['bin', 'oct', 'hex'].includes(value)) {
       try {
         const currentValue = result || expression;
         if (currentValue) {
           const num = parseInt(currentValue, 10);
           if (!isNaN(num)) {
-            const binaryResult = num.toString(2);
-            const originalExpression = `dec_to_bin(${currentValue})`;
-            setExpression(originalExpression);
-            setResult(binaryResult);
+            let conversionResult;
+            let base;
+            if (value === 'bin') {
+                base = 2;
+                conversionResult = num.toString(base);
+            } else if (value === 'oct') {
+                base = 8;
+                conversionResult = num.toString(base);
+            } else { // hex
+                base = 16;
+                conversionResult = num.toString(base).toUpperCase();
+            }
+            setExpression(`dec_to_${value}(${currentValue})`);
+            setResult(conversionResult);
           }
         }
       } catch (e) {
@@ -113,7 +123,7 @@ export default function Calculator() {
         let funcName = value;
         if (value === 'n!') funcName = 'factorial';
         if (value === 'exp') funcName = 'exp';
-        setExpression((prev) => prev + funcName + '(');
+        setExpression((prev) => funcName + '(');
     } else if (['(', ')', 'π', 'e'].includes(value)) {
         setExpression((prev) => prev + value);
     } else {
