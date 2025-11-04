@@ -4,33 +4,45 @@ import { CalculatorMode } from "./calculator";
 export interface KeyDefinition {
     label: string | React.ReactNode;
     value: string;
-    type: 'number' | 'operator' | 'function' | 'action';
+    type: 'number' | 'operator' | 'function' | 'action' | 'constant';
     mode: 'All' | CalculatorMode;
     className?: string;
 }
 
 export const keys: KeyDefinition[] = [
     // Scientific Row 1
+    { label: 'sin⁻¹', value: 'asin', type: 'function', mode: 'Scientific' },
+    { label: 'cos⁻¹', value: 'acos', type: 'function', mode: 'Scientific' },
+    { label: 'tan⁻¹', value: 'atan', type: 'function', mode: 'Scientific' },
+    { label: 'ln', value: 'ln', type: 'function', mode: 'Scientific' },
+
+    // Scientific Row 2
     { label: 'sin', value: 'sin', type: 'function', mode: 'Scientific' },
     { label: 'cos', value: 'cos', type: 'function', mode: 'Scientific' },
     { label: 'tan', value: 'tan', type: 'function', mode: 'Scientific' },
     { label: 'log', value: 'log', type: 'function', mode: 'Scientific' },
 
-    // Scientific Row 2
+    // Scientific Row 3
     { label: 'x²', value: 'x²', type: 'function', mode: 'Scientific' },
     { label: 'x³', value: 'x³', type: 'function', mode: 'Scientific' },
     { label: 'xʸ', value: '^', type: 'operator', mode: 'Scientific' },
     { label: '√', value: 'sqrt', type: 'function', mode: 'Scientific' },
     
-    // Scientific Row 3
+    // Scientific Row 4
     { label: '∛', value: 'cbrt', type: 'function', mode: 'Scientific' },
     { label: '1/x', value: '1/x', type: 'function', mode: 'Scientific' },
     { label: 'n!', value: 'n!', type: 'function', mode: 'Scientific' },
     { label: '(', value: '(', type: 'operator', mode: 'Scientific' },
     
-    // Scientific Row 4
+    // Scientific Row 5
     { label: ')', value: ')', type: 'operator', mode: 'Scientific' },
     { label: 'Bin', value: 'bin', type: 'function', mode: 'Scientific' },
+    { label: 'π', value: 'pi', type: 'constant', mode: 'Scientific' },
+    { label: 'e', value: 'e', type: 'constant', mode: 'Scientific' },
+
+    // Scientific Row 6
+    { label: '10ˣ', value: '10^x', type: 'function', mode: 'Scientific' },
+    { label: 'eˣ', value: 'exp', type: 'function', mode: 'Scientific' },
 
     // Standard Actions
     { label: 'C', value: 'C', type: 'action', mode: 'All', className: 'bg-destructive/80 hover:bg-destructive text-destructive-foreground' },

@@ -14,17 +14,14 @@ interface KeypadProps {
 export default function Keypad({ onButtonClick, mode }: KeypadProps) {
     
     const scientificKeys = keys.filter(key => key.mode === 'Scientific');
-    const numberKeys = keys.filter(key => key.type === 'number');
-    const operatorKeys = keys.filter(key => key.type === 'operator' && key.mode === 'All');
-    const actionKeys = keys.filter(key => key.type === 'action');
-    const functionKeys = keys.filter(key => key.type === 'function' && key.mode !== 'Scientific');
+    const standardKeys = keys.filter(key => key.mode === 'All');
 
     const renderKey = (key: KeyDefinition) => (
         <motion.div key={key.value} layout className={key.className || ''}>
             <motion.div whileTap={{ scale: 0.95 }} className="h-full">
                  <Button
                     onClick={() => onButtonClick(key.value)}
-                    className={`w-full h-16 text-xl font-semibold ${key.className || (key.type === 'operator' || key.type === 'action' || key.type === 'function' ? 'bg-secondary' : '')}`}
+                    className={`w-full h-16 text-xl font-semibold ${key.className || (key.type === 'operator' || key.type === 'action' || key.type === 'function' || key.type === 'constant' ? 'bg-secondary' : '')}`}
                     variant={key.type === 'number' ? 'outline' : 'default'}
                     aria-label={typeof key.label === 'string' ? key.label : key.value}
                 >
@@ -35,30 +32,31 @@ export default function Keypad({ onButtonClick, mode }: KeypadProps) {
     );
 
     return (
-        <div className="grid grid-cols-1 gap-2">
-            {mode === 'Scientific' && (
-                <div className="grid grid-cols-4 gap-2 mb-2">
-                    {scientificKeys.map(renderKey)}
-                </div>
-            )}
+        <motion.div layout className="grid grid-cols-1 gap-2">
+            <motion.div 
+                layout
+                className="grid grid-cols-1 gap-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: mode === 'Scientific' ? 1 : 0, height: mode === 'Scientific' ? 'auto' : 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                style={{ overflow: 'hidden' }}
+            >
+                {mode === 'Scientific' && (
+                    <div className="grid grid-cols-4 gap-2 mb-2">
+                        {scientificKeys.map(renderKey)}
+                    </div>
+                )}
+            </motion.div>
             
-            <div className="grid grid-cols-5 gap-2">
-                {/* Numbers on the left */}
-                <div className="col-span-3 grid grid-cols-3 gap-2">
-                    {actionKeys.filter(k => k.value !== '=' && k.value !== 'C').map(renderKey)}
-                    {functionKeys.map(renderKey)}
-                    {actionKeys.find(k => k.value ==='C') && renderKey(actionKeys.find(k => k.value ==='C')!)}
-                    
-                    {numberKeys.filter(k => k.value !== '0' && k.value !== '.').sort((a,b) => parseInt(b.value) - parseInt(a.value)).map(renderKey)}
-                    {numberKeys.filter(k => k.value === '0' || k.value === '.').map(renderKey)}
-                </div>
+            <motion.div layout className="grid grid-cols-4 gap-2">
+                {standardKeys.filter(k => k.type !== 'number' && k.value !== '=').map(renderKey)}
 
-                {/* Operators on the right */}
-                <div className="col-span-2 grid grid-cols-2 gap-2">
-                    {operatorKeys.map(renderKey)}
-                    {actionKeys.filter(k => k.value === '=').map(renderKey)}
-                </div>
-            </div>
-        </div>
+                {standardKeys.filter(k => k.type === 'number' && k.value !== '0' && k.value !== '.').sort((a,b) => parseInt(a.value) - parseInt(b.value)).reverse().map(renderKey)}
+                
+                {standardKeys.filter(k => k.type === 'number' && (k.value === '0' || k.value === '.')).map(renderKey)}
+
+                {standardKeys.find(k => k.value === '=') && renderKey(standardKeys.find(k => k.value === '=')!)}
+            </motion.div>
+        </motion.div>
     );
 }

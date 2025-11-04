@@ -101,17 +101,20 @@ export default function Calculator() {
         setExpression((prev) => '1/(' + prev);
     } else if (value === 'x²') {
         if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => 'square(' + prev);
+        setExpression((prev) => prev + '^2');
     } else if (value === 'x³') {
         if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => 'cube(' + prev);
-    } else if (value === 'n!') {
-      if (mode === 'Standard') setMode('Scientific');
-      setExpression((prev) => 'factorial(' + prev);
-    } else if (['sin', 'cos', 'tan', 'log', 'sqrt', 'cbrt'].includes(value)) {
+        setExpression((prev) => prev + '^3');
+    } else if (value === '10^x') {
         if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => prev + value + '(');
-    } else if (['(', ')'].includes(value)) {
+        setExpression((prev) => '10^(' + prev);
+    } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt', 'asin', 'acos', 'atan', 'exp', 'n!'].includes(value)) {
+        if (mode === 'Standard') setMode('Scientific');
+        let funcName = value;
+        if (value === 'n!') funcName = 'factorial';
+        if (value === 'exp') funcName = 'exp';
+        setExpression((prev) => prev + funcName + '(');
+    } else if (['(', ')', 'π', 'e'].includes(value)) {
         setExpression((prev) => prev + value);
     } else {
       setExpression((prev) => prev + value);
