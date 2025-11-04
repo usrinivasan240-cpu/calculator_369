@@ -214,8 +214,17 @@ export default function Calculator() {
         .replace(/point/g, '.');
       
       if(transcript.includes('=')) {
-        setExpression(transcript.slice(0, -1));
-        handleCalculate();
+        const newExpression = transcript.slice(0, -1);
+        setExpression(newExpression);
+        // We need to use a function form of setExpression to get the latest state
+        // and then call handleCalculate inside a useEffect that depends on a trigger.
+        // Direct call might use stale state. A better way is to trigger calculation.
+        // For simplicity here, we'll call it directly but this can be fragile.
+        // A more robust solution might involve a separate state to trigger calculation.
+        setExpression(newExpression);
+        // A simple timeout can help ensure state is updated before calculation
+        setTimeout(() => handleCalculate(), 0);
+
       } else {
         setExpression(transcript);
       }
@@ -239,14 +248,26 @@ export default function Calculator() {
             case 'service-not-allowed':
                 description = "Speech recognition service is not allowed by your browser or system settings.";
                 break;
+            case 'aborted':
+                // This can happen if the user stops it manually, so we don't always want to show an error.
+                // console.log('Speech recognition aborted.');
+                break;
+            default:
+                 description = `An error occurred: ${event.error}`;
         }
 
-        toast({
-            variant: "destructive",
-            title: "Voice Error",
-            description: description,
-        });
+        if (event.error !== 'aborted' && event.error !== 'no-speech') {
+            toast({
+                variant: "destructive",
+                title: "Voice Error",
+                description: description,
+            });
+        }
         setIsListening(false);
+    };
+
+    recognition.onstart = () => {
+      setIsListening(true);
     };
 
     recognition.onend = () => {
@@ -254,24 +275,37 @@ export default function Calculator() {
     };
     
     recognitionRef.current = recognition;
+
+    return () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+    }
   }, [toast, handleCalculate]);
 
   const handleVoiceInput = () => {
     if (isListening) {
       recognitionRef.current?.stop();
-      setIsListening(false);
     } else {
       try {
         recognitionRef.current?.start();
-        setIsListening(true);
-      } catch (error) {
-        console.error("Could not start voice recognition: ", error);
-        toast({
-            variant: "destructive",
-            title: "Voice Error",
-            description: "Could not start voice recognition service.",
-        });
-        setIsListening(false);
+      } catch (error: any) {
+        // The most common error here is "recognition has already started"
+        if (error.message.includes('already started')) {
+            // Silently ignore, as we are already listening.
+            // Or ensure our state is correct.
+            if (!isListening) {
+                setIsListening(true);
+            }
+        } else {
+            console.error("Could not start voice recognition: ", error);
+            toast({
+                variant: "destructive",
+                title: "Voice Error",
+                description: error.message || "Could not start voice recognition service.",
+            });
+            setIsListening(false);
+        }
       }
     }
   };
@@ -385,5 +419,3 @@ export default function Calculator() {
     </Card>
   );
 }
-
-    
