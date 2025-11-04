@@ -150,41 +150,43 @@ export default function Converter() {
         setFromUnit: (unit: any) => void, 
         toUnit: string, 
         setToUnit: (unit: any) => void
-    ) => (
-         <div className="p-4 bg-muted/30 rounded-lg">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                <div className="space-y-2">
-                    <Select value={fromUnit} onValueChange={setFromUnit}>
-                        <SelectTrigger>
-                            <SelectValue placeholder={`From ${category}`} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {units.map(unit => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                    <Input
-                        type="text"
-                        className="text-2xl h-16"
-                        value={inputValue}
-                        onChange={handleInputChange}
-                    />
-                </div>
-                <div className="space-y-2">
-                     <Select value={toUnit} onValueChange={setToUnit}>
-                        <SelectTrigger>
-                            <SelectValue placeholder={`To ${category}`} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {units.map(unit => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                    <Card className="flex items-center justify-start text-2xl h-16 px-3 bg-background">
-                        {category === 'Currency' ? (isConvertingCurrency ? '...' : convertedCurrency) : convertedValue}
-                    </Card>
+    ) => {
+        return (
+            <div className="p-4 bg-muted/30 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                    <div className="space-y-2">
+                        <Select value={fromUnit} onValueChange={setFromUnit}>
+                            <SelectTrigger>
+                                <SelectValue placeholder={`From ${category}`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {units.map(unit => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            type="text"
+                            className="text-2xl h-16"
+                            value={inputValue}
+                            onChange={handleInputChange}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Select value={toUnit} onValueChange={setToUnit}>
+                            <SelectTrigger>
+                                <SelectValue placeholder={`To ${category}`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {units.map(unit => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <Card className="flex items-center justify-start text-2xl h-16 px-3 bg-background">
+                            {category === 'Currency' ? (isConvertingCurrency ? '...' : convertedCurrency) : convertedValue}
+                        </Card>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
     
 
     return (
@@ -203,7 +205,7 @@ export default function Converter() {
                 </TabsContent>
                  <TabsContent value="Currency">
                     {renderUnitConverter(currencies, fromCurrency, setFromCurrency, toCurrency, setToCurrency)}
-                </Tabs-Content>
+                 </TabsContent>
             </Tabs>
         </div>
     );
