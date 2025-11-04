@@ -7,7 +7,7 @@ import CalculatorDisplay from './display';
 import Keypad from './keypad';
 import { useToast } from '@/hooks/use-toast';
 import { create, all, type MathJsStatic } from 'mathjs';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import Converter from '@/components/converter/converter';
 import GraphingCalculator from '../graphing/graphing-calculator';
 import { Label } from '@/components/ui/label';
@@ -344,10 +344,9 @@ export default function Calculator() {
       }
   }
   
-  const handleAppModeChange = (newMode: string) => {
-    const validMode = newMode as AppMode;
-    if (appMode !== validMode) {
-        setAppMode(validMode);
+  const handleAppModeChange = (newMode: AppMode) => {
+    if (appMode !== newMode) {
+        setAppMode(newMode);
         setExpression('');
         setResult('');
         setSolutionSteps([]);
@@ -392,79 +391,81 @@ export default function Calculator() {
   }, [handleButtonClick, appMode]);
 
   const renderContent = () => {
-    switch (appMode) {
-      case 'Calculator':
-        return (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center space-x-2">
-              <Switch id="teacher-mode" checked={isTeacherMode} onCheckedChange={setIsTeacherMode} />
-              <Label htmlFor="teacher-mode">Teacher Mode</Label>
-            </div>
-            <Tabs value={mode} onValueChange={(value) => handleModeChange(value as CalculatorMode)} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="Standard">Standard</TabsTrigger>
-                <TabsTrigger value="Scientific">Scientific</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Keypad onButtonClick={handleButtonClick} mode={mode} />
-            {(isSolving || solutionSteps.length > 0) && (
-              <TeacherMode steps={solutionSteps} isLoading={isSolving} />
-            )}
-          </div>
-        );
-      case 'Converter':
-        return <Converter />;
-      case 'Graphing':
-        return <GraphingCalculator />;
-      case 'Matrix':
-        return <MatrixCalculator />;
-      case 'EB Bill':
-        return <EBBillCalculator />;
-      case 'Solver':
-        return <EquationSolver />;
-      case 'GST':
-        return <GstCalculator />;
-      default:
-        return null;
+    switch(appMode) {
+        case 'Calculator':
+            return (
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center space-x-2">
+                        <Switch id="teacher-mode" checked={isTeacherMode} onCheckedChange={setIsTeacherMode} />
+                        <Label htmlFor="teacher-mode">Teacher Mode</Label>
+                    </div>
+                    <Tabs value={mode} onValueChange={(value) => handleModeChange(value as CalculatorMode)} className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="Standard">Standard</TabsTrigger>
+                            <TabsTrigger value="Scientific">Scientific</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                    <Keypad onButtonClick={handleButtonClick} mode={mode} />
+                    { (isSolving || solutionSteps.length > 0) && (
+                        <TeacherMode steps={solutionSteps} isLoading={isSolving} />
+                    )}
+                </div>
+            );
+        case 'Converter':
+            return <Converter />;
+        case 'Graphing':
+            return <GraphingCalculator />;
+        case 'Matrix':
+            return <MatrixCalculator />;
+        case 'EB Bill':
+            return <EBBillCalculator />;
+        case 'Solver':
+            return <EquationSolver />;
+        case 'GST':
+            return <GstCalculator />;
+        default:
+            return null;
     }
-  };
+  }
 
   return (
     <Card className="w-full max-w-sm md:max-w-4xl mx-auto shadow-2xl transition-all duration-300">
-      <CardHeader>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              {appModeLabels[appMode]}
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-            {appModes.map((am) => (
-              <DropdownMenuItem key={am} onSelect={() => handleAppModeChange(am)}>
-                {appModeLabels[am]}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <CardHeader>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                        {appModeLabels[appMode]}
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+                    {appModes.map((am) => (
+                        <DropdownMenuItem key={am} onSelect={() => handleAppModeChange(am)}>
+                            {appModeLabels[am]}
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
 
-        {appMode === 'Calculator' && (
-          <div className="relative pt-2">
-            <CalculatorDisplay expression={expression} result={result} />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-2 text-muted-foreground"
-              onClick={handleVoiceInput}
-            >
-              {isListening ? <MicOff /> : <Mic />}
-            </Button>
-          </div>
-        )}
-      </CardHeader>
-      <CardContent>
-        {renderContent()}
-      </CardContent>
+            {appMode === 'Calculator' && (
+                <div className="relative pt-2">
+                    <CalculatorDisplay expression={expression} result={result} />
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="absolute top-4 right-2 text-muted-foreground"
+                        onClick={handleVoiceInput}
+                    >
+                        {isListening ? <MicOff /> : <Mic />}
+                    </Button>
+                </div>
+            )}
+        </CardHeader>
+        <CardContent>
+            {renderContent()}
+        </CardContent>
     </Card>
   );
 }
+
+    
