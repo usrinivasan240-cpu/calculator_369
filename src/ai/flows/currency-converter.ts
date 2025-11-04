@@ -64,6 +64,18 @@ const getExchangeRateTool = ai.defineTool(
     }
 );
 
+const currencyConverterPrompt = ai.definePrompt({
+    name: 'currencyConverterPrompt',
+    tools: [getExchangeRateTool],
+    prompt: `Get the exchange rate from {{{from}}} to {{{to}}}.`,
+    input: {
+        schema: z.object({
+            from: z.enum(currencies),
+            to: z.enum(currencies),
+        }),
+    },
+});
+
 
 const currencyConverterFlow = ai.defineFlow(
   {
@@ -73,7 +85,9 @@ const currencyConverterFlow = ai.defineFlow(
   },
   async ({ from, to, amount }) => {
     
-    const { output: toolOutput } = await ai.runTool(getExchangeRateTool, { from, to });
+    const response = await currencyConverterPrompt({ from, to });
+    const toolOutput = response.toolRequest?.tool?.output;
+
     if (!toolOutput) {
         throw new Error('Could not get exchange rate');
     }
