@@ -10,6 +10,11 @@ import { create, all, type MathJsStatic } from 'mathjs';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import Converter from '@/components/converter/converter';
 import GraphingCalculator from '../graphing/graphing-calculator';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { solveExpression, type SolutionStep } from '@/ai/flows/expression-solver';
+import TeacherMode from './teacher-mode';
+
 
 export type CalculatorMode = 'Standard' | 'Scientific';
 export type AppMode = 'Calculator' | 'Converter' | 'Graphing';
@@ -32,6 +37,10 @@ export default function Calculator() {
   const [result, setResult] = useState('');
   const [mode, setMode] = useState<CalculatorMode>('Standard');
   const [appMode, setAppMode] = useState<AppMode>('Calculator');
+  const [isTeacherMode, setIsTeacherMode] = useState(false);
+  const [solutionSteps, setSolutionSteps] = useState<SolutionStep[]>([]);
+  const [isSolving, setIsSolving] = useState(false);
+
 
   const { toast } = useToast();
 
@@ -39,22 +48,44 @@ export default function Calculator() {
 
   const handleCalculate = useCallback(async () => {
     if (!expression) return;
+    setSolutionSteps([]);
     try {
-      let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
-      
-      const openParen = (evalExpression.match(/\(/g) || []).length;
-      const closeParen = (evalExpression.match(/\)/g) || []).length;
-      if (openParen > closeParen) {
-        evalExpression += ')'.repeat(openParen - closeParen);
-      }
-      
-      const calculatedResult = mathInstance.evaluate(evalExpression);
+        let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+        
+        const openParen = (evalExpression.match(/\(/g) || []).length;
+        const closeParen = (evalExpression.match(/\)/g) || []).length;
+        if (openParen > closeParen) {
+            evalExpression += ')'.repeat(openParen - closeParen);
+        }
 
-      if (typeof calculatedResult === 'function' || typeof calculatedResult === 'undefined' || calculatedResult === null) {
-          throw new Error("Invalid evaluation result");
-      }
-      const formattedResult = String(Number(calculatedResult.toFixed(10)));
-      setResult(formattedResult);
+        if (isTeacherMode) {
+            setIsSolving(true);
+            try {
+                const solution = await solveExpression({ expression: evalExpression });
+                setSolutionSteps(solution.steps);
+                setResult(solution.finalAnswer);
+            } catch (aiError) {
+                console.error("Teacher mode failed:", aiError);
+                toast({
+                    variant: "destructive",
+                    title: "Teacher Mode Failed",
+                    description: "Could not generate a solution. Please try again.",
+                });
+                // Fallback to regular calculation
+                const calculatedResult = mathInstance.evaluate(evalExpression);
+                setResult(String(Number(calculatedResult.toFixed(10))));
+            } finally {
+                setIsSolving(false);
+            }
+        } else {
+            const calculatedResult = mathInstance.evaluate(evalExpression);
+
+            if (typeof calculatedResult === 'function' || typeof calculatedResult === 'undefined' || calculatedResult === null) {
+                throw new Error("Invalid evaluation result");
+            }
+            const formattedResult = String(Number(calculatedResult.toFixed(10)));
+            setResult(formattedResult);
+        }
 
     } catch (error) {
       setResult('Error');
@@ -64,15 +95,17 @@ export default function Calculator() {
         description: "Please check your calculation.",
       });
     }
-  }, [expression, toast, mathInstance]);
+  }, [expression, toast, mathInstance, isTeacherMode]);
 
   const handleButtonClick = useCallback((value: string) => {
     setResult('');
+    setSolutionSteps([]);
     if (value === '=') {
       handleCalculate();
     } else if (value === 'C') {
       setExpression('');
       setResult('');
+      setSolutionSteps([]);
     } else if (value === '⌫') {
       setExpression((prev) => prev.slice(0, -1));
     } else if (value === '%') {
@@ -86,17 +119,16 @@ export default function Calculator() {
                 return prev;
             }
         });
-    } else if (['bin'].includes(value)) {
+    } else if (value === 'bin') {
       try {
         const currentValue = result || expression;
         if (currentValue && !isNaN(Number(currentValue))) {
           const num = parseInt(currentValue, 10);
           if (!isNaN(num)) {
             let conversionResult;
-            if (value === 'bin') {
-                conversionResult = num.toString(2);
-            }
-            setExpression(`dec_to_${value}(${currentValue})`);
+            conversionResult = num.toString(2);
+            
+            setExpression(`dec_to_bin(${currentValue})`);
             setResult(conversionResult!);
           } else {
              toast({
@@ -127,11 +159,11 @@ export default function Calculator() {
     } else if (value === 'x³') {
         setExpression((prev) => '(' + prev + ')^3');
     } else if (value === '10^x') {
-        setExpression((prev) => '10^(' + prev);
+        setExpression((prev) => '10^(' + prev + ')');
     } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt', 'asin', 'acos', 'atan', 'exp'].includes(value)) {
-        setExpression((prev) => value + '(');
+        setExpression((prev) => prev + value + '(');
     } else if (value === 'n!') {
-        setExpression((prev) => 'factorial(' + prev + ')');
+        setExpression((prev) => prev + '!');
     } else if (value === '|x|') {
         setExpression((prev) => 'abs(' + prev + ')');
     } else if (value === 'Mod') {
@@ -156,6 +188,7 @@ export default function Calculator() {
         setAppMode(newMode);
         setExpression('');
         setResult('');
+        setSolutionSteps([]);
     }
 }
 
@@ -211,13 +244,22 @@ export default function Calculator() {
         <CardContent>
             <Tabs value={appMode} defaultValue="Calculator" className="w-full">
                 <TabsContent value="Calculator">
-                    <Tabs value={mode} onValueChange={(value) => handleModeChange(value as CalculatorMode)} className="w-full mb-4">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="Standard">Standard</TabsTrigger>
-                            <TabsTrigger value="Scientific">Scientific</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-                    <Keypad onButtonClick={handleButtonClick} mode={mode} />
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center space-x-2">
+                            <Switch id="teacher-mode" checked={isTeacherMode} onCheckedChange={setIsTeacherMode} />
+                            <Label htmlFor="teacher-mode">Teacher Mode</Label>
+                        </div>
+                        <Tabs value={mode} onValueChange={(value) => handleModeChange(value as CalculatorMode)} className="w-full">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="Standard">Standard</TabsTrigger>
+                                <TabsTrigger value="Scientific">Scientific</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                        <Keypad onButtonClick={handleButtonClick} mode={mode} />
+                        { (isSolving || solutionSteps.length > 0) && (
+                            <TeacherMode steps={solutionSteps} isLoading={isSolving} />
+                        )}
+                    </div>
                 </TabsContent>
                 <TabsContent value="Converter">
                     <Converter />

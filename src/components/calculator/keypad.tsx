@@ -16,10 +16,10 @@ const Keypad: React.FC<KeypadProps> = ({ onButtonClick, mode }) => {
     const scientificKeys = keys.filter(key => key.mode === 'Scientific');
 
     const renderKey = (key: KeyDefinition | undefined) => {
-        if (!key) return null;
+        if (!key) return <div />;
         return (
             <motion.div
-                key={key.value + key.mode}
+                key={key.value + key.mode + key.order}
                 layout
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -43,16 +43,19 @@ const Keypad: React.FC<KeypadProps> = ({ onButtonClick, mode }) => {
     
     return (
         <div className={`grid gap-2 ${mode === 'Scientific' ? 'grid-cols-10' : 'grid-cols-4'}`}>
+            
+            {/* Scientific Keys */}
             {mode === 'Scientific' && (
-                <motion.div layout className="grid grid-cols-6 col-span-6 gap-2">
-                    {scientificKeys.sort((a, b) => a.order - b.order).map(key => renderKey(key))}
+                <motion.div layout className="col-span-6 grid grid-cols-6 gap-2">
+                    {scientificKeys.sort((a, b) => a.order - b.order).map(renderKey)}
                 </motion.div>
             )}
 
+            {/* Standard Keys */}
             <div className={`col-span-4 grid grid-cols-4 gap-2`}>
-                {renderKey(standardKeys.find(k => k.value === '%'))}
                 {renderKey(standardKeys.find(k => k.value === 'C'))}
                 {renderKey(standardKeys.find(k => k.value === '⌫'))}
+                {renderKey(standardKeys.find(k => k.value === '%'))}
                 {renderKey(standardKeys.find(k => k.value === '÷'))}
                 
                 {renderKey(keys.find(k => k.value === '7'))}
