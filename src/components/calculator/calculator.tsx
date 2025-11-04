@@ -9,9 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 import { create, all, type MathJsStatic } from 'mathjs';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import Converter from '@/components/converter/converter';
+import GraphingCalculator from '../graphing/graphing-calculator';
 
 export type CalculatorMode = 'Standard' | 'Scientific';
-export type AppMode = 'Calculator' | 'Converter';
+export type AppMode = 'Calculator' | 'Converter' | 'Graphing';
 
 const createMathInstance = (): MathJsStatic => {
     const config = {
@@ -127,12 +128,12 @@ export default function Calculator() {
         setExpression((prev) => '(' + prev + ')^3');
     } else if (value === '10^x') {
         setExpression((prev) => '10^(' + prev);
-    } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt', 'asin', 'acos', 'atan', 'exp', 'n!', '|x|'].includes(value)) {
-        let funcName = value;
-        if (value === 'n!') funcName = 'factorial';
-        if (value === 'exp') funcName = 'exp';
-        if (value === '|x|') funcName = 'abs';
-        setExpression((prev) => funcName + '(' + prev);
+    } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt', 'asin', 'acos', 'atan', 'exp'].includes(value)) {
+        setExpression((prev) => value + '(');
+    } else if (value === 'n!') {
+        setExpression((prev) => 'factorial(' + prev + ')');
+    } else if (value === '|x|') {
+        setExpression((prev) => 'abs(' + prev + ')');
     } else if (value === 'Mod') {
         setExpression((prev) => prev + ' mod ');
     } else if (['(', ')', 'π', 'e'].includes(value)) {
@@ -199,9 +200,10 @@ export default function Calculator() {
     <Card className="w-full max-w-sm md:max-w-4xl mx-auto shadow-2xl transition-all duration-300">
         <CardHeader>
              <Tabs value={appMode} onValueChange={(value) => handleAppModeChange(value as AppMode)} className="w-full mb-2">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="Calculator">Calculator</TabsTrigger>
                     <TabsTrigger value="Converter">Converter</TabsTrigger>
+                    <TabsTrigger value="Graphing">Graphing</TabsTrigger>
                 </TabsList>
             </Tabs>
             {appMode === 'Calculator' && <CalculatorDisplay expression={expression} result={result} />}
@@ -219,6 +221,9 @@ export default function Calculator() {
                 </TabsContent>
                 <TabsContent value="Converter">
                     <Converter />
+                </TabsContent>
+                 <TabsContent value="Graphing">
+                    <GraphingCalculator />
                 </TabsContent>
             </Tabs>
         </CardContent>
