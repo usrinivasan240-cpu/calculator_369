@@ -15,14 +15,27 @@ import { Switch } from '@/components/ui/switch';
 import { solveExpression, type SolutionStep } from '@/ai/flows/expression-solver';
 import TeacherMode from './teacher-mode';
 import { Button } from '../ui/button';
-import { Mic, MicOff } from 'lucide-react';
+import { Mic, MicOff, ChevronDown } from 'lucide-react';
 import MatrixCalculator from '../matrix/matrix-calculator';
 import EBBillCalculator from '../eb-bill/eb-bill-calculator';
 import EquationSolver from '../equation-solver/equation-solver';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 
 export type CalculatorMode = 'Standard' | 'Scientific';
 export type AppMode = 'Calculator' | 'Converter' | 'Graphing' | 'Matrix' | 'EB Bill' | 'Solver';
+
+const appModeLabels: Record<AppMode, string> = {
+    Calculator: 'Calculator',
+    Converter: 'Unit Converter',
+    Graphing: 'Graphing Calculator',
+    Matrix: 'Matrix Calculator',
+    'EB Bill': 'EB Bill Calculator',
+    Solver: 'Equation Solver'
+};
+
+const appModes: AppMode[] = ['Calculator', 'Converter', 'Graphing', 'Matrix', 'EB Bill', 'Solver'];
+
 
 const createMathInstance = (): MathJsStatic => {
     const config = {
@@ -373,16 +386,23 @@ export default function Calculator() {
   return (
     <Card className="w-full max-w-sm md:max-w-4xl mx-auto shadow-2xl transition-all duration-300">
         <CardHeader>
-             <Tabs value={appMode} onValueChange={(value) => handleAppModeChange(value as AppMode)} className="w-full mb-2">
-                <TabsList className="grid w-full grid-cols-6">
-                    <TabsTrigger value="Calculator">Calculator</TabsTrigger>
-                    <TabsTrigger value="Converter">Converter</TabsTrigger>
-                    <TabsTrigger value="Graphing">Graphing</TabsTrigger>
-                    <TabsTrigger value="Matrix">Matrix</TabsTrigger>
-                    <TabsTrigger value="EB Bill">EB Bill</TabsTrigger>
-                    <TabsTrigger value="Solver">Solver</TabsTrigger>
-                </TabsList>
-            </Tabs>
+             <div className="w-full mb-2">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between">
+                            <span>{appModeLabels[appMode]}</span>
+                            <ChevronDown className="h-4 w-4 opacity-50" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-full">
+                        {appModes.map((am) => (
+                           <DropdownMenuItem key={am} onSelect={() => handleAppModeChange(am as AppMode)}>
+                                {appModeLabels[am]}
+                           </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+             </div>
             {appMode === 'Calculator' && (
                 <div className="relative">
                     <CalculatorDisplay expression={expression} result={result} />
@@ -399,7 +419,7 @@ export default function Calculator() {
         </CardHeader>
         <CardContent>
             <Tabs value={appMode} defaultValue="Calculator" className="w-full">
-                <TabsContent value="Calculator">
+                <TabsContent value="Calculator" className="mt-0">
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center space-x-2">
                             <Switch id="teacher-mode" checked={isTeacherMode} onCheckedChange={setIsTeacherMode} />
@@ -417,19 +437,19 @@ export default function Calculator() {
                         )}
                     </div>
                 </TabsContent>
-                <TabsContent value="Converter">
+                <TabsContent value="Converter" className="mt-0">
                     <Converter />
                 </TabsContent>
-                 <TabsContent value="Graphing">
+                 <TabsContent value="Graphing" className="mt-0">
                     <GraphingCalculator />
                 </TabsContent>
-                <TabsContent value="Matrix">
+                <TabsContent value="Matrix" className="mt-0">
                     <MatrixCalculator />
                 </TabsContent>
-                 <TabsContent value="EB Bill">
+                 <TabsContent value="EB Bill" className="mt-0">
                     <EBBillCalculator />
                 </TabsContent>
-                <TabsContent value="Solver">
+                <TabsContent value="Solver" className="mt-0">
                     <EquationSolver />
                 </TabsContent>
             </Tabs>
@@ -437,8 +457,3 @@ export default function Calculator() {
     </Card>
   );
 }
-
-    
-    
-
-    
