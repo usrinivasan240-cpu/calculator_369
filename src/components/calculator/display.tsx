@@ -1,3 +1,4 @@
+
 "use client";
 
 interface CalculatorDisplayProps {
@@ -7,7 +8,7 @@ interface CalculatorDisplayProps {
 
 export default function CalculatorDisplay({ expression, result }: CalculatorDisplayProps) {
     return (
-        <div className="bg-muted/50 rounded-lg p-4 text-right min-h-[100px] flex flex-col justify-end">
+        <div className="bg-muted/50 rounded-lg p-4 text-right min-h-[100px] flex flex-col justify-end pr-14">
             <div className="text-muted-foreground text-xl break-all h-8 overflow-x-auto overflow-y-hidden">
                 {expression || ' '}
             </div>

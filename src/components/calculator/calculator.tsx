@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import CalculatorDisplay from './display';
 import Keypad from './keypad';
@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { solveExpression, type SolutionStep } from '@/ai/flows/expression-solver';
 import TeacherMode from './teacher-mode';
+import { Button } from '../ui/button';
+import { Mic, MicOff } from 'lucide-react';
 
 
 export type CalculatorMode = 'Standard' | 'Scientific';
@@ -32,6 +34,12 @@ const createMathInstance = (): MathJsStatic => {
     return math;
 };
 
+// Extend the Window interface for SpeechRecognition
+interface IWindow extends Window {
+  SpeechRecognition: any;
+  webkitSpeechRecognition: any;
+}
+
 export default function Calculator() {
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('');
@@ -40,7 +48,9 @@ export default function Calculator() {
   const [isTeacherMode, setIsTeacherMode] = useState(false);
   const [solutionSteps, setSolutionSteps] = useState<SolutionStep[]>([]);
   const [isSolving, setIsSolving] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
+  const recognitionRef = useRef<any>(null);
 
   const { toast } = useToast();
 
@@ -175,6 +185,69 @@ export default function Calculator() {
     }
   }, [handleCalculate, mathInstance, result, expression, toast]);
 
+  useEffect(() => {
+    const SpeechRecognition = (window as IWindow).SpeechRecognition || (window as IWindow).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({
+        variant: "destructive",
+        title: "Browser Not Supported",
+        description: "Your browser does not support voice recognition.",
+      });
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    recognition.onresult = (event: any) => {
+      let transcript = event.results[0][0].transcript;
+      transcript = transcript.toLowerCase()
+        .replace(/\s/g, '')
+        .replace(/plus/g, '+')
+        .replace(/minus/g, '−')
+        .replace(/times/g, '×')
+        .replace(/x/g, '×')
+        .replace(/dividedby/g, '÷')
+        .replace(/equals/g, '=')
+        .replace(/point/g, '.');
+      
+      if(transcript.includes('=')) {
+        setExpression(transcript.slice(0, -1));
+        handleCalculate();
+      } else {
+        setExpression(transcript);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error', event.error);
+      toast({
+        variant: "destructive",
+        title: "Voice Error",
+        description: event.error === 'not-allowed' ? "Microphone access denied." : "Something went wrong.",
+      });
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+    
+    recognitionRef.current = recognition;
+  }, [toast, handleCalculate]);
+
+  const handleVoiceInput = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current?.start();
+      setIsListening(true);
+    }
+  };
+
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
           setMode(newMode);
@@ -239,7 +312,19 @@ export default function Calculator() {
                     <TabsTrigger value="Graphing">Graphing</TabsTrigger>
                 </TabsList>
             </Tabs>
-            {appMode === 'Calculator' && <CalculatorDisplay expression={expression} result={result} />}
+            {appMode === 'Calculator' && (
+                <div className="relative">
+                    <CalculatorDisplay expression={expression} result={result} />
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="absolute top-2 right-2 text-muted-foreground"
+                        onClick={handleVoiceInput}
+                    >
+                        {isListening ? <MicOff /> : <Mic />}
+                    </Button>
+                </div>
+            )}
         </CardHeader>
         <CardContent>
             <Tabs value={appMode} defaultValue="Calculator" className="w-full">
