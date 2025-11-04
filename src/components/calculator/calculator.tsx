@@ -19,10 +19,11 @@ import { Mic, MicOff } from 'lucide-react';
 import MatrixCalculator from '../matrix/matrix-calculator';
 import EBBillCalculator from '../eb-bill/eb-bill-calculator';
 import EquationSolver from '../equation-solver/equation-solver';
+import GstCalculator from '../gst-calculator/gst-calculator';
 
 
 export type CalculatorMode = 'Standard' | 'Scientific';
-export type AppMode = 'Calculator' | 'Converter' | 'Graphing' | 'Matrix' | 'EB Bill' | 'Solver';
+export type AppMode = 'Calculator' | 'Converter' | 'Graphing' | 'Matrix' | 'EB Bill' | 'Solver' | 'GST';
 
 const appModeLabels: Record<AppMode, string> = {
     Calculator: 'Calculator',
@@ -30,10 +31,11 @@ const appModeLabels: Record<AppMode, string> = {
     Graphing: 'Graphing Calculator',
     Matrix: 'Matrix Calculator',
     'EB Bill': 'EB Bill Calculator',
-    Solver: 'Equation Solver'
+    Solver: 'Equation Solver',
+    GST: 'GST Calculator'
 };
 
-const appModes: AppMode[] = ['Calculator', 'Converter', 'Graphing', 'Matrix', 'EB Bill', 'Solver'];
+const appModes: AppMode[] = ['Calculator', 'Converter', 'Graphing', 'Matrix', 'EB Bill', 'Solver', 'GST'];
 
 
 const createMathInstance = (): MathJsStatic => {
@@ -387,7 +389,7 @@ export default function Calculator() {
     <Card className="w-full max-w-sm md:max-w-4xl mx-auto shadow-2xl transition-all duration-300">
         <Tabs value={appMode} onValueChange={handleAppModeChange} className="w-full">
         <CardHeader>
-             <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto">
+             <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 h-auto">
                 {appModes.map((am) => (
                     <TabsTrigger key={am} value={am}>
                         {appModeLabels[am]}
@@ -443,11 +445,12 @@ export default function Calculator() {
                 <TabsContent value="Solver" className="mt-0">
                     <EquationSolver />
                 </TabsContent>
+                <TabsContent value="GST" className="mt-0">
+                    <GstCalculator />
+                </TabsContent>
             
         </CardContent>
         </Tabs>
     </Card>
   );
 }
-
-    
