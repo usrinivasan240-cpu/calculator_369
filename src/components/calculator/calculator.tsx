@@ -10,15 +10,10 @@ import { create, all, type MathJsStatic } from 'mathjs';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import Converter from '@/components/converter/converter';
 import GraphingCalculator from '../graphing/graphing-calculator';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { solveExpression, type SolutionStep } from '@/ai/flows/expression-solver';
-import TeacherMode from './teacher-mode';
 import { Button } from '../ui/button';
 import { Mic, MicOff, ChevronDown } from 'lucide-react';
 import MatrixCalculator from '../matrix/matrix-calculator';
 import EBBillCalculator from '../eb-bill/eb-bill-calculator';
-import EquationSolver from '../equation-solver/equation-solver';
 import GstCalculator from '../gst-calculator/gst-calculator';
 import {
     DropdownMenu,
@@ -29,7 +24,7 @@ import {
 
 
 export type CalculatorMode = 'Standard' | 'Scientific';
-export type AppMode = 'Calculator' | 'Converter' | 'Graphing' | 'Matrix' | 'EB Bill' | 'Solver' | 'GST';
+export type AppMode = 'Calculator' | 'Converter' | 'Graphing' | 'Matrix' | 'EB Bill' | 'GST';
 
 const appModeLabels: Record<AppMode, string> = {
     Calculator: 'Calculator',
@@ -37,11 +32,10 @@ const appModeLabels: Record<AppMode, string> = {
     Graphing: 'Graphing Calculator',
     Matrix: 'Matrix Calculator',
     'EB Bill': 'EB Bill Calculator',
-    Solver: 'Equation Solver',
     GST: 'GST Calculator'
 };
 
-const appModes: AppMode[] = ['Calculator', 'Converter', 'Graphing', 'Matrix', 'EB Bill', 'Solver', 'GST'];
+const appModes: AppMode[] = ['Calculator', 'Converter', 'Graphing', 'Matrix', 'EB Bill', 'GST'];
 
 
 const createMathInstance = (): MathJsStatic => {
@@ -68,9 +62,6 @@ export default function Calculator() {
   const [result, setResult] = useState('');
   const [mode, setMode] = useState<CalculatorMode>('Standard');
   const [appMode, setAppMode] = useState<AppMode>('Calculator');
-  const [isTeacherMode, setIsTeacherMode] = useState(false);
-  const [solutionSteps, setSolutionSteps] = useState<SolutionStep[]>([]);
-  const [isSolving, setIsSolving] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
   const recognitionRef = useRef<any>(null);
@@ -81,7 +72,7 @@ export default function Calculator() {
 
   const handleCalculate = useCallback(async () => {
     if (!expression) return;
-    setSolutionSteps([]);
+    
     try {
         let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
         
@@ -94,34 +85,13 @@ export default function Calculator() {
             evalExpression += ')'.repeat(openParen - closeParen);
         }
 
-        if (isTeacherMode) {
-            setIsSolving(true);
-            try {
-                const solution = await solveExpression({ expression: evalExpression });
-                setSolutionSteps(solution.steps);
-                setResult(solution.finalAnswer);
-            } catch (aiError) {
-                console.error("Teacher mode failed:", aiError);
-                toast({
-                    variant: "destructive",
-                    title: "Teacher Mode Failed",
-                    description: "Could not generate a solution. Please try again.",
-                });
-                // Fallback to regular calculation
-                const calculatedResult = mathInstance.evaluate(evalExpression);
-                setResult(String(Number(calculatedResult.toFixed(10))));
-            } finally {
-                setIsSolving(false);
-            }
-        } else {
-            const calculatedResult = mathInstance.evaluate(evalExpression);
+        const calculatedResult = mathInstance.evaluate(evalExpression);
 
-            if (typeof calculatedResult === 'function' || typeof calculatedResult === 'undefined' || calculatedResult === null) {
-                throw new Error("Invalid evaluation result");
-            }
-            const formattedResult = String(Number(calculatedResult.toFixed(10)));
-            setResult(formattedResult);
+        if (typeof calculatedResult === 'function' || typeof calculatedResult === 'undefined' || calculatedResult === null) {
+            throw new Error("Invalid evaluation result");
         }
+        const formattedResult = String(Number(calculatedResult.toFixed(10)));
+        setResult(formattedResult);
 
     } catch (error) {
       setResult('Error');
@@ -131,17 +101,15 @@ export default function Calculator() {
         description: "Please check your calculation.",
       });
     }
-  }, [expression, toast, mathInstance, isTeacherMode]);
+  }, [expression, toast, mathInstance]);
 
   const handleButtonClick = useCallback((value: string) => {
     setResult('');
-    setSolutionSteps([]);
     if (value === '=') {
       handleCalculate();
     } else if (value === 'C') {
       setExpression('');
       setResult('');
-      setSolutionSteps([]);
     } else if (value === '⌫') {
       setExpression((prev) => prev.slice(0, -1));
     } else if (value === '%') {
@@ -349,7 +317,6 @@ export default function Calculator() {
         setAppMode(newMode);
         setExpression('');
         setResult('');
-        setSolutionSteps([]);
     }
 }
 
@@ -395,10 +362,6 @@ export default function Calculator() {
         case 'Calculator':
             return (
                 <div className="flex flex-col gap-4">
-                    <div className="flex items-center space-x-2">
-                        <Switch id="teacher-mode" checked={isTeacherMode} onCheckedChange={setIsTeacherMode} />
-                        <Label htmlFor="teacher-mode">Teacher Mode</Label>
-                    </div>
                     <Tabs value={mode} onValueChange={(value) => handleModeChange(value as CalculatorMode)} className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="Standard">Standard</TabsTrigger>
@@ -406,9 +369,6 @@ export default function Calculator() {
                         </TabsList>
                     </Tabs>
                     <Keypad onButtonClick={handleButtonClick} mode={mode} />
-                    { (isSolving || solutionSteps.length > 0) && (
-                        <TeacherMode steps={solutionSteps} isLoading={isSolving} />
-                    )}
                 </div>
             );
         case 'Converter':
@@ -419,8 +379,6 @@ export default function Calculator() {
             return <MatrixCalculator />;
         case 'EB Bill':
             return <EBBillCalculator />;
-        case 'Solver':
-            return <EquationSolver />;
         case 'GST':
             return <GstCalculator />;
         default:
@@ -467,5 +425,3 @@ export default function Calculator() {
     </Card>
   );
 }
-
-    
