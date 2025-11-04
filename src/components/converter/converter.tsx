@@ -1,18 +1,24 @@
 
 "use client";
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
+import { getExchangeRates, type ExchangeRates } from '@/ai/flows/currency-converter';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
-type ConversionCategory = 'Temperature' | 'Length';
+type ConversionCategory = 'Temperature' | 'Length' | 'Currency';
 type TemperatureUnit = 'Celsius' | 'Fahrenheit' | 'Kelvin';
 type LengthUnit = 'Kilometers' | 'Miles';
 
 const tempUnits: TemperatureUnit[] = ['Celsius', 'Fahrenheit', 'Kelvin'];
 const lengthUnits: LengthUnit[] = ['Kilometers', 'Miles'];
+// A list of some popular currencies
+const currencyUnits: string[] = ['USD', 'EUR', 'JPY', 'GBP', 'INR', 'AUD', 'CAD', 'CHF', 'CNY'];
+
 
 export default function Converter() {
     const [category, setCategory] = useState<ConversionCategory>('Temperature');
@@ -25,6 +31,35 @@ export default function Converter() {
     // Length state
     const [fromLength, setFromLength] = useState<LengthUnit>('Kilometers');
     const [toLength, setToLength] = useState<LengthUnit>('Miles');
+
+    // Currency state
+    const [fromCurrency, setFromCurrency] = useState<string>('USD');
+    const [toCurrency, setToCurrency] = useState<string>('INR');
+    const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(null);
+    const [isRatesLoading, setIsRatesLoading] = useState(false);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if (category === 'Currency') {
+            setIsRatesLoading(true);
+            getExchangeRates({ baseCurrency: fromCurrency })
+                .then(data => {
+                    setExchangeRates(data);
+                })
+                .catch(err => {
+                    console.error("Failed to fetch exchange rates:", err);
+                    toast({
+                        variant: 'destructive',
+                        title: 'Error Fetching Rates',
+                        description: 'Could not load the latest currency exchange rates. Please try again later.'
+                    });
+                    setExchangeRates(null);
+                })
+                .finally(() => {
+                    setIsRatesLoading(false);
+                });
+        }
+    }, [category, fromCurrency, toast]);
 
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,16 +129,26 @@ export default function Converter() {
             }
             return result.toFixed(4);
         }
+        
+        if (category === 'Currency') {
+            if (!exchangeRates || isRatesLoading) return '';
+            const rate = exchangeRates.rates[toCurrency];
+            if (rate) {
+                return (num * rate).toFixed(2);
+            }
+            return 'N/A';
+        }
 
         return '';
-    }, [inputValue, category, fromTemp, toTemp, fromLength, toLength]);
+    }, [inputValue, category, fromTemp, toTemp, fromLength, toLength, fromCurrency, toCurrency, exchangeRates, isRatesLoading]);
     
     const renderUnitConverter = (
         units: string[], 
         fromUnit: string, 
         setFromUnit: (unit: any) => void, 
         toUnit: string, 
-        setToUnit: (unit: any) => void
+        setToUnit: (unit: any) => void,
+        isLoading?: boolean
     ) => {
         return (
             <div className="p-4 bg-muted/30 rounded-lg">
@@ -134,7 +179,7 @@ export default function Converter() {
                             </SelectContent>
                         </Select>
                         <Card className="flex items-center justify-start text-2xl h-16 px-3 bg-background">
-                           {convertedValue}
+                           {isLoading ? <Loader2 className="animate-spin" /> : convertedValue}
                         </Card>
                     </div>
                 </div>
@@ -146,9 +191,10 @@ export default function Converter() {
     return (
         <div className="space-y-4">
              <Tabs value={category} onValueChange={(val) => setCategory(val as ConversionCategory)} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="Temperature">Temperature</TabsTrigger>
                     <TabsTrigger value="Length">Length</TabsTrigger>
+                    <TabsTrigger value="Currency">Currency</TabsTrigger>
                 </TabsList>
                 <TabsContent value="Temperature">
                     {renderUnitConverter(tempUnits, fromTemp, setFromTemp, toTemp, setToTemp)}
@@ -156,7 +202,12 @@ export default function Converter() {
                 <TabsContent value="Length">
                     {renderUnitConverter(lengthUnits, fromLength, setFromLength, toLength, setToLength)}
                 </TabsContent>
+                <TabsContent value="Currency">
+                    {renderUnitConverter(currencyUnits, fromCurrency, setFromCurrency, toCurrency, setToCurrency, isRatesLoading)}
+                </TabsContent>
             </Tabs>
         </div>
     );
 }
+
+    
