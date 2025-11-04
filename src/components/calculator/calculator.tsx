@@ -15,11 +15,17 @@ import { Switch } from '@/components/ui/switch';
 import { solveExpression, type SolutionStep } from '@/ai/flows/expression-solver';
 import TeacherMode from './teacher-mode';
 import { Button } from '../ui/button';
-import { Mic, MicOff } from 'lucide-react';
+import { Mic, MicOff, ChevronDown } from 'lucide-react';
 import MatrixCalculator from '../matrix/matrix-calculator';
 import EBBillCalculator from '../eb-bill/eb-bill-calculator';
 import EquationSolver from '../equation-solver/equation-solver';
 import GstCalculator from '../gst-calculator/gst-calculator';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu"
 
 
 export type CalculatorMode = 'Standard' | 'Scientific';
@@ -389,13 +395,22 @@ export default function Calculator() {
     <Card className="w-full max-w-sm md:max-w-4xl mx-auto shadow-2xl transition-all duration-300">
         <Tabs value={appMode} onValueChange={handleAppModeChange} className="w-full">
         <CardHeader>
-             <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 h-auto">
-                {appModes.map((am) => (
-                    <TabsTrigger key={am} value={am}>
-                        {appModeLabels[am]}
-                    </TabsTrigger>
-                ))}
-             </TabsList>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                        {appModeLabels[appMode]}
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+                    {appModes.map((am) => (
+                        <DropdownMenuItem key={am} onSelect={() => handleAppModeChange(am)}>
+                            {appModeLabels[am]}
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
             {appMode === 'Calculator' && (
                 <div className="relative pt-2">
                     <CalculatorDisplay expression={expression} result={result} />
