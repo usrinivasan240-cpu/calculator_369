@@ -54,7 +54,7 @@ export default function Keypad({ onButtonClick, mode }: KeypadProps) {
             {keys.find(k => k.value === '4')}
             {keys.find(k => k.value === '5')}
             {keys.find(k => k.value === '6')}
-            {standardKeys.find(k => k.value === '−')}
+            {standardKeys.find(k => k.value === '-')}
 
             {keys.find(k => k.value === '1')}
             {keys.find(k => k.value === '2')}
@@ -68,42 +68,35 @@ export default function Keypad({ onButtonClick, mode }: KeypadProps) {
     )
 
     return (
-       <div className={`grid gap-2 grid-cols-1 ${mode === 'Scientific' ? 'md:grid-cols-[2fr_1fr]' : 'md:grid-cols-1'}`}>
+       <div className={`grid gap-2 grid-cols-1 ${mode === 'Scientific' ? 'md:grid-cols-[auto_400px]' : 'md:grid-cols-1'}`}>
             {mode === 'Scientific' && (
                  <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hidden md:grid grid-cols-6 gap-2">
                     {scientificKeys.sort((a,b) => a.order - b.order).map(renderKey)}
                 </motion.div>
             )}
 
-            <div className={`grid grid-cols-4 gap-2 ${mode === 'Scientific' ? 'md:hidden' : ''}`}>
+            <div className={`grid-cols-4 gap-2 ${mode === 'Scientific' ? 'grid' : 'hidden'}`}>
                 {[
                     ...standardKeys.filter(k => k.value === '%' || k.value === 'C' || k.value === '⌫' || k.value === '÷'),
                     ...keys.filter(k => ['7','8','9'].includes(k.value)),
                     ...standardKeys.filter(k => k.value === '×'),
                     ...keys.filter(k => ['4','5','6'].includes(k.value)),
-                    ...standardKeys.filter(k => k.value === '−'),
+                    ...standardKeys.filter(k => k.value === '-'),
                      ...keys.filter(k => ['1','2','3'].includes(k.value)),
                     ...standardKeys.filter(k => k.value === '+'),
                     ...keys.filter(k => k.value === '0' || k.value === '.'),
                     ...standardKeys.filter(k => k.value === '='),
                 ]
-                .sort((a, b) => {
-                    const rowA = Math.floor((['%', 'C', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', '.', '='].indexOf(a.value)) / 4);
-                    const rowB = Math.floor((['%', 'C', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', '.', '='].indexOf(b.value)) / 4);
-                    if (rowA !== rowB) return rowA - rowB;
-                    // Note: This sorting is mainly for structure, layout is done via grid
-                    return ['%', 'C', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', '.', '='].indexOf(a.value) - ['%', 'C', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', '.', '='].indexOf(b.value);
-                })
+                .sort((a,b) => a.order - b.order)
                 .map(renderKey)}
             </div>
-
-             <div className={`hidden ${mode === 'Scientific' ? 'md:grid' : 'md:hidden'} grid-cols-4 gap-2`}>
+             <div className={`grid ${mode === 'Standard' ? 'grid-cols-4' : 'hidden'} gap-2`}>
                  {[
                     ...standardKeys.filter(k => k.value === '%' || k.value === 'C' || k.value === '⌫' || k.value === '÷'),
                     ...keys.filter(k => ['7','8','9'].includes(k.value)),
                     ...standardKeys.filter(k => k.value === '×'),
                     ...keys.filter(k => ['4','5','6'].includes(k.value)),
-                    ...standardKeys.filter(k => k.value === '−'),
+                    ...standardKeys.filter(k => k.value === '-'),
                      ...keys.filter(k => ['1','2','3'].includes(k.value)),
                     ...standardKeys.filter(k => k.value === '+'),
                     ...keys.filter(k => k.value === '0' || k.value === '.'),

@@ -40,16 +40,16 @@ export const keys: KeyDefinition[] = [
     
     // --- Standard Keys (also in scientific) ---
     // Actions
-    { label: 'C', value: 'C', type: 'action', mode: 'All', className: 'bg-destructive/80 hover:bg-destructive text-destructive-foreground', order: 101 },
+    { label: 'C', value: 'C', type: 'action', mode: 'All', order: 101 },
     { label: '⌫', value: '⌫', type: 'action', mode: 'All', order: 102 },
     { label: '%', value: '%', type: 'function', mode: 'All', order: 103 },
     { label: '=', value: '=', type: 'action', mode: 'All', className: 'bg-accent hover:bg-accent/90 text-accent-foreground', order: 104 },
 
     // Operators
-    { label: '÷', value: '÷', type: 'operator', mode: 'All', className: 'bg-primary/80 hover:bg-primary text-primary-foreground', order: 201 },
-    { label: '×', value: '×', type: 'operator', mode: 'All', className: 'bg-primary/80 hover:bg-primary text-primary-foreground', order: 202 },
-    { label: '−', value: '-', type: 'operator', mode: 'All', className: 'bg-primary/80 hover:bg-primary text-primary-foreground', order: 203 },
-    { label: '+', value: '+', type: 'operator', mode: 'All', className: 'bg-primary/80 hover:bg-primary text-primary-foreground', order: 204 },
+    { label: '÷', value: '÷', type: 'operator', mode: 'All', order: 201 },
+    { label: '×', value: '×', type: 'operator', mode: 'All', order: 202 },
+    { label: '−', value: '-', type: 'operator', mode: 'All', order: 203 },
+    { label: '+', value: '+', type: 'operator', mode: 'All', order: 204 },
     
     // Numbers
     { label: '7', value: '7', type: 'number', mode: 'All', order: 307 },
@@ -64,3 +64,4 @@ export const keys: KeyDefinition[] = [
     { label: '0', value: '0', type: 'number', mode: 'All', className: 'col-span-2', order: 300 },
     { label: '.', value: '.', type: 'number', mode: 'All', order: 310 },
 ];
+
