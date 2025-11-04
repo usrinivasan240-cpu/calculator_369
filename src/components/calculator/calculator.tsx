@@ -123,11 +123,14 @@ export default function Calculator() {
         setExpression((prev) => '(' + prev + ')^3');
     } else if (value === '10^x') {
         setExpression((prev) => '10^(' + prev);
-    } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt', 'asin', 'acos', 'atan', 'exp', 'n!'].includes(value)) {
+    } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt', 'asin', 'acos', 'atan', 'exp', 'n!', '|x|'].includes(value)) {
         let funcName = value;
         if (value === 'n!') funcName = 'factorial';
         if (value === 'exp') funcName = 'exp';
+        if (value === '|x|') funcName = 'abs';
         setExpression((prev) => funcName + '(' + prev);
+    } else if (value === 'Mod') {
+        setExpression((prev) => prev + ' mod ');
     } else if (['(', ')', 'π', 'e'].includes(value)) {
         setExpression((prev) => prev + value);
     } else {

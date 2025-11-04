@@ -37,6 +37,9 @@ export const keys: KeyDefinition[] = [
     { label: 'cos⁻¹', value: 'acos', type: 'function', mode: 'Scientific', order: 32 },
     { label: 'tan⁻¹', value: 'atan', type: 'function', mode: 'Scientific', order: 33 },
     { label: '10ˣ', value: '10^x', type: 'function', mode: 'Scientific', order: 34 },
+    { label: 'Mod', value: 'Mod', type: 'operator', mode: 'Scientific', order: 35 },
+    { label: '|x|', value: '|x|', type: 'function', mode: 'Scientific', order: 36 },
+
     
     // --- Standard Keys (also in scientific) ---
     // Actions
@@ -64,4 +67,3 @@ export const keys: KeyDefinition[] = [
     { label: '0', value: '0', type: 'number', mode: 'All', className: 'col-span-2', order: 300 },
     { label: '.', value: '.', type: 'number', mode: 'All', order: 310 },
 ];
-
