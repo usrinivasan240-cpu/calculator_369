@@ -1,19 +1,15 @@
 
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { currencies } from '@/lib/currencies';
-import { convertCurrency, type CurrencyConversionInput, type CurrencyConversionOutput } from '@/ai/flows/currency-converter';
-import { useDebounce } from '@/hooks/use-debounce';
 
-type ConversionCategory = 'Temperature' | 'Length' | 'Currency';
+type ConversionCategory = 'Temperature' | 'Length';
 type TemperatureUnit = 'Celsius' | 'Fahrenheit' | 'Kelvin';
 type LengthUnit = 'Kilometers' | 'Miles';
-type CurrencyUnit = string;
 
 const tempUnits: TemperatureUnit[] = ['Celsius', 'Fahrenheit', 'Kelvin'];
 const lengthUnits: LengthUnit[] = ['Kilometers', 'Miles'];
@@ -30,13 +26,6 @@ export default function Converter() {
     const [fromLength, setFromLength] = useState<LengthUnit>('Kilometers');
     const [toLength, setToLength] = useState<LengthUnit>('Miles');
 
-    // Currency state
-    const [fromCurrency, setFromCurrency] = useState<CurrencyUnit>('USD');
-    const [toCurrency, setToCurrency] = useState<CurrencyUnit>('EUR');
-    const [convertedCurrency, setConvertedCurrency] = useState<string | null>(null);
-    const [isConvertingCurrency, setIsConvertingCurrency] = useState(false);
-
-    const debouncedInputValue = useDebounce(inputValue, 500);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -45,41 +34,6 @@ export default function Converter() {
             setInputValue(value);
         }
     };
-    
-    const performCurrencyConversion = useCallback(async () => {
-        const num = parseFloat(debouncedInputValue);
-        if (isNaN(num) || !fromCurrency || !toCurrency) {
-            setConvertedCurrency('');
-            return;
-        }
-
-        setIsConvertingCurrency(true);
-        try {
-            const result: CurrencyConversionOutput = await convertCurrency({
-                from: fromCurrency,
-                to: toCurrency,
-                amount: num,
-            });
-            if (result.convertedAmount !== null) {
-                setConvertedCurrency(result.convertedAmount.toFixed(2));
-            } else {
-                setConvertedCurrency('Error');
-            }
-        } catch (error) {
-            console.error('Conversion failed:', error);
-            setConvertedCurrency('Error');
-        } finally {
-            setIsConvertingCurrency(false);
-        }
-    }, [debouncedInputValue, fromCurrency, toCurrency]);
-
-
-    useEffect(() => {
-        if (category === 'Currency') {
-            performCurrencyConversion();
-        }
-    }, [debouncedInputValue, fromCurrency, toCurrency, category, performCurrencyConversion]);
-
 
     const convertedValue = useMemo(() => {
         const num = parseFloat(inputValue);
@@ -180,7 +134,7 @@ export default function Converter() {
                             </SelectContent>
                         </Select>
                         <Card className="flex items-center justify-start text-2xl h-16 px-3 bg-background">
-                            {category === 'Currency' ? (isConvertingCurrency ? '...' : convertedCurrency) : convertedValue}
+                           {convertedValue}
                         </Card>
                     </div>
                 </div>
@@ -192,10 +146,9 @@ export default function Converter() {
     return (
         <div className="space-y-4">
              <Tabs value={category} onValueChange={(val) => setCategory(val as ConversionCategory)} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="Temperature">Temperature</TabsTrigger>
                     <TabsTrigger value="Length">Length</TabsTrigger>
-                    <TabsTrigger value="Currency">Currency</TabsTrigger>
                 </TabsList>
                 <TabsContent value="Temperature">
                     {renderUnitConverter(tempUnits, fromTemp, setFromTemp, toTemp, setToTemp)}
@@ -203,9 +156,6 @@ export default function Converter() {
                 <TabsContent value="Length">
                     {renderUnitConverter(lengthUnits, fromLength, setFromLength, toLength, setToLength)}
                 </TabsContent>
-                 <TabsContent value="Currency">
-                    {renderUnitConverter(currencies, fromCurrency, setFromCurrency, toCurrency, setToCurrency)}
-                 </TabsContent>
             </Tabs>
         </div>
     );
