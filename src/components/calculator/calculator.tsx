@@ -65,6 +65,9 @@ export default function Calculator() {
     try {
         let evalExpression = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
         
+        // Auto-correct repeated operators
+        evalExpression = evalExpression.replace(/([+\-*/])\1+/g, '$1');
+
         const openParen = (evalExpression.match(/\(/g) || []).length;
         const closeParen = (evalExpression.match(/\)/g) || []).length;
         if (openParen > closeParen) {
@@ -436,4 +439,6 @@ export default function Calculator() {
 }
 
     
+    
+
     
