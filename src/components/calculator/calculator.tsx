@@ -394,7 +394,7 @@ export default function Calculator() {
                             <ChevronDown className="h-4 w-4 opacity-50" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full">
+                    <DropdownMenuContent className="w-56">
                         {appModes.map((am) => (
                            <DropdownMenuItem key={am} onSelect={() => handleAppModeChange(am as AppMode)}>
                                 {appModeLabels[am]}
