@@ -81,34 +81,34 @@ export default function Calculator() {
                 return prev;
             }
         });
-    } else if (['bin', 'oct', 'hex'].includes(value)) {
+    } else if (['bin'].includes(value)) {
       try {
         const currentValue = result || expression;
         if (currentValue && !isNaN(Number(currentValue))) {
           const num = parseInt(currentValue, 10);
           if (!isNaN(num)) {
             let conversionResult;
-            let base;
             if (value === 'bin') {
-                base = 2;
-                conversionResult = num.toString(base);
-            } else if (value === 'oct') {
-                base = 8;
-                conversionResult = num.toString(base);
-            } else { // hex
-                base = 16;
-                conversionResult = num.toString(base).toUpperCase();
+                conversionResult = num.toString(2);
             }
             setExpression(`dec_to_${value}(${currentValue})`);
-            setResult(conversionResult);
+            setResult(conversionResult!);
+          } else {
+            throw new Error("Invalid number for conversion");
           }
+        } else {
+            toast({
+                variant: "destructive",
+                title: "No Value to Convert",
+                description: "Please enter a number before converting.",
+            });
         }
-      } catch (e) {
+      } catch (e: any) {
         setResult('Error');
         toast({
             variant: "destructive",
             title: "Conversion Error",
-            description: "Could not perform base conversion.",
+            description: e.message || "Could not perform base conversion.",
         });
       }
     } else if (value === '1/x') {
@@ -116,10 +116,10 @@ export default function Calculator() {
         setExpression((prev) => '1/(' + prev);
     } else if (value === 'x²') {
         if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => prev + '^2');
+        setExpression((prev) => '(' + prev + ')^2');
     } else if (value === 'x³') {
         if (mode === 'Standard') setMode('Scientific');
-        setExpression((prev) => prev + '^3');
+        setExpression((prev) => '(' + prev + ')^3');
     } else if (value === '10^x') {
         if (mode === 'Standard') setMode('Scientific');
         setExpression((prev) => '10^(' + prev);

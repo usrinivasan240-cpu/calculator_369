@@ -37,12 +37,10 @@ export const keys: KeyDefinition[] = [
     // Scientific Row 5
     { label: ')', value: ')', type: 'operator', mode: 'Scientific' },
     { label: 'Bin', value: 'bin', type: 'function', mode: 'Scientific' },
-    { label: 'Oct', value: 'oct', type: 'function', mode: 'Scientific' },
-    { label: 'Hex', value: 'hex', type: 'function', mode: 'Scientific' },
-    
-    // Scientific Row 6
     { label: 'π', value: 'pi', type: 'constant', mode: 'Scientific' },
     { label: 'e', value: 'e', type: 'constant', mode: 'Scientific' },
+    
+    // Scientific Row 6
     { label: '10ˣ', value: '10^x', type: 'function', mode: 'Scientific' },
     { label: 'eˣ', value: 'exp', type: 'function', mode: 'Scientific' },
 
