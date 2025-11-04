@@ -13,15 +13,23 @@ interface KeypadProps {
 
 export default function Keypad({ onButtonClick, mode }: KeypadProps) {
     
-    const scientificKeys = keys.filter(key => key.mode === 'Scientific');
     const standardKeys = keys.filter(key => key.mode === 'All');
-
+    const scientificKeys = keys.filter(key => key.mode === 'Scientific');
+    
     const renderKey = (key: KeyDefinition) => (
-        <motion.div key={key.value} layout className={key.className || ''}>
+        <motion.div 
+            key={key.value + key.order} 
+            layout 
+            className={key.className || ''}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.1 }}
+        >
             <motion.div whileTap={{ scale: 0.95 }} className="h-full">
                  <Button
                     onClick={() => onButtonClick(key.value)}
-                    className={`w-full h-16 text-xl font-semibold ${key.className || (key.type === 'operator' || key.type === 'action' || key.type === 'function' || key.type === 'constant' ? 'bg-secondary' : '')}`}
+                    className={`w-full h-14 md:h-16 text-lg md:text-xl font-semibold ${key.className || (key.type === 'operator' || key.type === 'action' || key.type === 'function' || key.type === 'constant' ? 'bg-secondary' : '')}`}
                     variant={key.type === 'number' ? 'outline' : 'default'}
                     aria-label={typeof key.label === 'string' ? key.label : key.value}
                 >
@@ -31,32 +39,79 @@ export default function Keypad({ onButtonClick, mode }: KeypadProps) {
         </motion.div>
     );
 
-    return (
-        <motion.div layout className="grid grid-cols-1 gap-2">
-            <motion.div 
-                layout
-                className="grid grid-cols-1 gap-2"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: mode === 'Scientific' ? 1 : 0, height: mode === 'Scientific' ? 'auto' : 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                style={{ overflow: 'hidden' }}
-            >
-                {mode === 'Scientific' && (
-                    <div className="grid grid-cols-4 gap-2 mb-2">
-                        {scientificKeys.map(renderKey)}
-                    </div>
-                )}
-            </motion.div>
+    const standardGrid = (
+        <div className="grid grid-cols-4 gap-2">
+            {standardKeys.find(k => k.value === '%')}
+            {standardKeys.find(k => k.value === 'C')}
+            {standardKeys.find(k => k.value === '⌫')}
+            {standardKeys.find(k => k.value === '÷')}
             
-            <motion.div layout className="grid grid-cols-4 gap-2">
-                {standardKeys.filter(k => k.type !== 'number' && k.value !== '=').map(renderKey)}
+            {keys.find(k => k.value === '7')}
+            {keys.find(k => k.value === '8')}
+            {keys.find(k => k.value === '9')}
+            {standardKeys.find(k => k.value === '×')}
 
-                {standardKeys.filter(k => k.type === 'number' && k.value !== '0' && k.value !== '.').sort((a,b) => parseInt(a.value) - parseInt(b.value)).reverse().map(renderKey)}
-                
-                {standardKeys.filter(k => k.type === 'number' && (k.value === '0' || k.value === '.')).map(renderKey)}
+            {keys.find(k => k.value === '4')}
+            {keys.find(k => k.value === '5')}
+            {keys.find(k => k.value === '6')}
+            {standardKeys.find(k => k.value === '−')}
 
-                {standardKeys.find(k => k.value === '=') && renderKey(standardKeys.find(k => k.value === '=')!)}
-            </motion.div>
-        </motion.div>
+            {keys.find(k => k.value === '1')}
+            {keys.find(k => k.value === '2')}
+            {keys.find(k => k.value === '3')}
+            {standardKeys.find(k => k.value === '+')}
+
+            {keys.find(k => k.value === '0')}
+            {keys.find(k => k.value === '.')}
+            {standardKeys.find(k => k.value === '=')}
+        </div>
+    )
+
+    return (
+       <div className={`grid gap-2 grid-cols-1 ${mode === 'Scientific' ? 'md:grid-cols-[2fr_1fr]' : 'md:grid-cols-1'}`}>
+            {mode === 'Scientific' && (
+                 <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hidden md:grid grid-cols-6 gap-2">
+                    {scientificKeys.sort((a,b) => a.order - b.order).map(renderKey)}
+                </motion.div>
+            )}
+
+            <div className={`grid grid-cols-4 gap-2 ${mode === 'Scientific' ? 'md:hidden' : ''}`}>
+                {[
+                    ...standardKeys.filter(k => k.value === '%' || k.value === 'C' || k.value === '⌫' || k.value === '÷'),
+                    ...keys.filter(k => ['7','8','9'].includes(k.value)),
+                    ...standardKeys.filter(k => k.value === '×'),
+                    ...keys.filter(k => ['4','5','6'].includes(k.value)),
+                    ...standardKeys.filter(k => k.value === '−'),
+                     ...keys.filter(k => ['1','2','3'].includes(k.value)),
+                    ...standardKeys.filter(k => k.value === '+'),
+                    ...keys.filter(k => k.value === '0' || k.value === '.'),
+                    ...standardKeys.filter(k => k.value === '='),
+                ]
+                .sort((a, b) => {
+                    const rowA = Math.floor((['%', 'C', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', '.', '='].indexOf(a.value)) / 4);
+                    const rowB = Math.floor((['%', 'C', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', '.', '='].indexOf(b.value)) / 4);
+                    if (rowA !== rowB) return rowA - rowB;
+                    // Note: This sorting is mainly for structure, layout is done via grid
+                    return ['%', 'C', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', '.', '='].indexOf(a.value) - ['%', 'C', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', '.', '='].indexOf(b.value);
+                })
+                .map(renderKey)}
+            </div>
+
+             <div className={`hidden ${mode === 'Scientific' ? 'md:grid' : 'md:hidden'} grid-cols-4 gap-2`}>
+                 {[
+                    ...standardKeys.filter(k => k.value === '%' || k.value === 'C' || k.value === '⌫' || k.value === '÷'),
+                    ...keys.filter(k => ['7','8','9'].includes(k.value)),
+                    ...standardKeys.filter(k => k.value === '×'),
+                    ...keys.filter(k => ['4','5','6'].includes(k.value)),
+                    ...standardKeys.filter(k => k.value === '−'),
+                     ...keys.filter(k => ['1','2','3'].includes(k.value)),
+                    ...standardKeys.filter(k => k.value === '+'),
+                    ...keys.filter(k => k.value === '0' || k.value === '.'),
+                    ...standardKeys.filter(k => k.value === '='),
+                ]
+                .sort((a,b) => a.order - b.order)
+                .map(renderKey)}
+            </div>
+       </div>
     );
 }

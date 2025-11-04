@@ -94,7 +94,11 @@ export default function Calculator() {
             setExpression(`dec_to_${value}(${currentValue})`);
             setResult(conversionResult!);
           } else {
-            throw new Error("Invalid number for conversion");
+             toast({
+                variant: "destructive",
+                title: "Invalid Number",
+                description: "Cannot convert a non-integer value.",
+            });
           }
         } else {
             toast({
@@ -112,29 +116,24 @@ export default function Calculator() {
         });
       }
     } else if (value === '1/x') {
-        if (mode === 'Standard') setMode('Scientific');
         setExpression((prev) => '1/(' + prev);
     } else if (value === 'x²') {
-        if (mode === 'Standard') setMode('Scientific');
         setExpression((prev) => '(' + prev + ')^2');
     } else if (value === 'x³') {
-        if (mode === 'Standard') setMode('Scientific');
         setExpression((prev) => '(' + prev + ')^3');
     } else if (value === '10^x') {
-        if (mode === 'Standard') setMode('Scientific');
         setExpression((prev) => '10^(' + prev);
     } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt', 'asin', 'acos', 'atan', 'exp', 'n!'].includes(value)) {
-        if (mode === 'Standard') setMode('Scientific');
         let funcName = value;
         if (value === 'n!') funcName = 'factorial';
         if (value === 'exp') funcName = 'exp';
-        setExpression((prev) => prev + funcName + '(');
+        setExpression((prev) => funcName + '(' + prev);
     } else if (['(', ')', 'π', 'e'].includes(value)) {
         setExpression((prev) => prev + value);
     } else {
       setExpression((prev) => prev + value);
     }
-  }, [handleCalculate, mode, mathInstance, result, expression, toast]);
+  }, [handleCalculate, mathInstance, result, expression, toast]);
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
@@ -181,7 +180,7 @@ export default function Calculator() {
   }, [handleButtonClick]);
 
   return (
-    <Card className="w-full max-w-lg mx-auto shadow-2xl">
+    <Card className="w-full max-w-sm md:max-w-3xl mx-auto shadow-2xl transition-all duration-300">
         <CardHeader>
             <CalculatorDisplay expression={expression} result={result} />
         </CardHeader>
