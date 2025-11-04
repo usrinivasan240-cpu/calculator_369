@@ -5,8 +5,8 @@ import { FirebaseProvider } from '@/components/providers/firebase-provider';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'FireCalc',
-  description: 'A smart calculator integrated with Firebase',
+  title: 'All in one calculator',
+  description: 'A smart all-in-one calculator',
 };
 
 export default function RootLayout({

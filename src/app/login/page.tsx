@@ -3,7 +3,7 @@ import { LoginForm } from '@/components/auth/login-form';
 import { Lightbulb } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Login - FireCalc',
+  title: 'Login - All in one calculator',
   description: 'Login to access your smart calculator.',
 };
 
@@ -16,7 +16,7 @@ export default function LoginPage() {
         />
         <div className="relative z-20 flex items-center text-lg font-medium text-primary-foreground">
           <Lightbulb className="mr-2 h-6 w-6" />
-          FireCalc
+          All in one calculator
         </div>
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
@@ -30,7 +30,7 @@ export default function LoginPage() {
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Welcome to FireCalc
+              Welcome to All in one calculator
             </h1>
             <p className="text-sm text-muted-foreground">
               Sign in or create an account to continue
