@@ -27,26 +27,11 @@ const CurrencyConversionOutputSchema = z.object({
 });
 export type CurrencyConversionOutput = z.infer<typeof CurrencyConversionOutputSchema>;
 
-// Mock exchange rates - in a real-world scenario, you would fetch this from an API
-const mockExchangeRates: Record<Currency, number> = {
-  USD: 1, // Base currency
-  EUR: 0.93,
-  JPY: 157.0,
-  GBP: 0.79,
-  AUD: 1.5,
-  CAD: 1.37,
-  CHF: 0.9,
-  CNY: 7.25,
-  SEK: 10.5,
-  NZD: 1.63,
-  INR: 83.5,
-};
-
 
 const getExchangeRateTool = ai.defineTool(
     {
         name: 'getExchangeRate',
-        description: 'Get the exchange rate between two currencies. This is a mock tool and does not use a live API.',
+        description: 'Get the real-time exchange rate between two currencies from an API.',
         inputSchema: z.object({
             from: z.enum(currencies),
             to: z.enum(currencies),
@@ -56,11 +41,26 @@ const getExchangeRateTool = ai.defineTool(
         }),
     },
     async ({ from, to }) => {
-        const fromRate = mockExchangeRates[from];
-        const toRate = mockExchangeRates[to];
-        // Convert 'from' currency to USD, then USD to 'to' currency
-        const rate = (1 / fromRate) * toRate;
-        return { rate };
+        try {
+            // Using a free exchange rate API (no API key required for this endpoint)
+            const response = await fetch(`https://open.exchangerate-api.com/v6/latest/${from}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch exchange rates: ${response.statusText}`);
+            }
+            const data = await response.json();
+            if (data.result === 'error') {
+                throw new Error(`API error: ${data['error-type']}`);
+            }
+            const rate = data.rates[to];
+            if (!rate) {
+                throw new Error(`Could not find rate for currency: ${to}`);
+            }
+            return { rate };
+        } catch (error) {
+            console.error("Error fetching live exchange rate:", error);
+            // Fallback or re-throw
+            throw new Error("Could not retrieve live exchange rate.");
+        }
     }
 );
 
