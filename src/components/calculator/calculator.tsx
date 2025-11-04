@@ -173,7 +173,7 @@ export default function Calculator() {
         setExpression((prev) => '(' + prev + ')^3');
     } else if (value === '10^x') {
         setExpression((prev) => '10^(' + prev + ')');
-    } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt', 'asin', 'acos', 'atan', 'exp'].includes(value)) {
+    } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'cbrt', 'asin', 'acos', 'atan', 'exp', 'permutations', 'combinations'].includes(value)) {
         setExpression((prev) => prev + value + '(');
     } else if (value === 'n!') {
         setExpression((prev) => prev + '!');

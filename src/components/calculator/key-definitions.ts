@@ -40,6 +40,9 @@ export const keys: KeyDefinition[] = [
     { label: 'Mod', value: 'Mod', type: 'operator', mode: 'Scientific', order: 35 },
     { label: '|x|', value: '|x|', type: 'function', mode: 'Scientific', order: 36 },
 
+    { label: 'nCr', value: 'combinations', type: 'function', mode: 'Scientific', order: 41 },
+    { label: 'nPr', value: 'permutations', type: 'function', mode: 'Scientific', order: 42 },
+
     
     // --- Standard Keys (also in scientific) ---
     // Actions
