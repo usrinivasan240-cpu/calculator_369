@@ -18,10 +18,11 @@ import { Button } from '../ui/button';
 import { Mic, MicOff } from 'lucide-react';
 import MatrixCalculator from '../matrix/matrix-calculator';
 import EBBillCalculator from '../eb-bill/eb-bill-calculator';
+import EquationSolver from '../equation-solver/equation-solver';
 
 
 export type CalculatorMode = 'Standard' | 'Scientific';
-export type AppMode = 'Calculator' | 'Converter' | 'Graphing' | 'Matrix' | 'EB Bill';
+export type AppMode = 'Calculator' | 'Converter' | 'Graphing' | 'Matrix' | 'EB Bill' | 'Solver';
 
 const createMathInstance = (): MathJsStatic => {
     const config = {
@@ -370,12 +371,13 @@ export default function Calculator() {
     <Card className="w-full max-w-sm md:max-w-4xl mx-auto shadow-2xl transition-all duration-300">
         <CardHeader>
              <Tabs value={appMode} onValueChange={(value) => handleAppModeChange(value as AppMode)} className="w-full mb-2">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-6">
                     <TabsTrigger value="Calculator">Calculator</TabsTrigger>
                     <TabsTrigger value="Converter">Converter</TabsTrigger>
                     <TabsTrigger value="Graphing">Graphing</TabsTrigger>
                     <TabsTrigger value="Matrix">Matrix</TabsTrigger>
                     <TabsTrigger value="EB Bill">EB Bill</TabsTrigger>
+                    <TabsTrigger value="Solver">Solver</TabsTrigger>
                 </TabsList>
             </Tabs>
             {appMode === 'Calculator' && (
@@ -423,6 +425,9 @@ export default function Calculator() {
                 </TabsContent>
                  <TabsContent value="EB Bill">
                     <EBBillCalculator />
+                </TabsContent>
+                <TabsContent value="Solver">
+                    <EquationSolver />
                 </TabsContent>
             </Tabs>
         </CardContent>
