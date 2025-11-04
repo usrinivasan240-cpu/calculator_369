@@ -84,7 +84,7 @@ export default function Calculator() {
     } else if (['bin', 'oct', 'hex'].includes(value)) {
       try {
         const currentValue = result || expression;
-        if (currentValue) {
+        if (currentValue && !isNaN(Number(currentValue))) {
           const num = parseInt(currentValue, 10);
           if (!isNaN(num)) {
             let conversionResult;
@@ -105,6 +105,11 @@ export default function Calculator() {
         }
       } catch (e) {
         setResult('Error');
+        toast({
+            variant: "destructive",
+            title: "Conversion Error",
+            description: "Could not perform base conversion.",
+        });
       }
     } else if (value === '1/x') {
         if (mode === 'Standard') setMode('Scientific');
@@ -123,13 +128,13 @@ export default function Calculator() {
         let funcName = value;
         if (value === 'n!') funcName = 'factorial';
         if (value === 'exp') funcName = 'exp';
-        setExpression((prev) => funcName + '(');
+        setExpression((prev) => prev + funcName + '(');
     } else if (['(', ')', 'π', 'e'].includes(value)) {
         setExpression((prev) => prev + value);
     } else {
       setExpression((prev) => prev + value);
     }
-  }, [handleCalculate, mode, mathInstance, result, expression]);
+  }, [handleCalculate, mode, mathInstance, result, expression, toast]);
 
   const handleModeChange = (newMode: CalculatorMode) => {
       if (mode !== newMode) {
