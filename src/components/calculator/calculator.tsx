@@ -7,9 +7,11 @@ import CalculatorDisplay from './display';
 import Keypad from './keypad';
 import { useToast } from '@/hooks/use-toast';
 import { create, all, type MathJsStatic } from 'mathjs';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import Converter from '@/components/converter/converter';
 
 export type CalculatorMode = 'Standard' | 'Scientific';
+export type AppMode = 'Calculator' | 'Converter';
 
 const createMathInstance = (): MathJsStatic => {
     const config = {
@@ -28,6 +30,7 @@ export default function Calculator() {
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('');
   const [mode, setMode] = useState<CalculatorMode>('Standard');
+  const [appMode, setAppMode] = useState<AppMode>('Calculator');
 
   const { toast } = useToast();
 
@@ -74,6 +77,7 @@ export default function Calculator() {
     } else if (value === '%') {
         setExpression((prev) => {
             try {
+                if (!prev) return '';
                 const currentVal = mathInstance.evaluate(prev);
                 const newExpression = String(currentVal / 100);
                 return newExpression;
@@ -116,7 +120,7 @@ export default function Calculator() {
         });
       }
     } else if (value === '1/x') {
-        setExpression((prev) => '1/(' + prev);
+        setExpression((prev) => '1/(' + prev + ')');
     } else if (value === 'x²') {
         setExpression((prev) => '(' + prev + ')^2');
     } else if (value === 'x³') {
@@ -145,8 +149,17 @@ export default function Calculator() {
           setResult('');
       }
   }
+  
+  const handleAppModeChange = (newMode: AppMode) => {
+    if (appMode !== newMode) {
+        setAppMode(newMode);
+        setExpression('');
+        setResult('');
+    }
+}
 
   useEffect(() => {
+    if (appMode !== 'Calculator') return;
     const handleKeyDown = (event: KeyboardEvent) => {
         const { key } = event;
         if (/[0-9]/.test(key)) {
@@ -180,22 +193,34 @@ export default function Calculator() {
     return () => {
         window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleButtonClick]);
+  }, [handleButtonClick, appMode]);
 
   return (
-    <Card className="w-full max-w-sm md:max-w-3xl mx-auto shadow-2xl transition-all duration-300">
+    <Card className="w-full max-w-sm md:max-w-4xl mx-auto shadow-2xl transition-all duration-300">
         <CardHeader>
-            <CalculatorDisplay expression={expression} result={result} />
-        </CardHeader>
-        <CardContent>
-            <Tabs value={mode} onValueChange={(value) => handleModeChange(value as CalculatorMode)} className="w-full mb-4">
+             <Tabs value={appMode} onValueChange={(value) => handleAppModeChange(value as AppMode)} className="w-full mb-2">
                 <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="Standard">Standard</TabsTrigger>
-
-                    <TabsTrigger value="Scientific">Scientific</TabsTrigger>
+                    <TabsTrigger value="Calculator">Calculator</TabsTrigger>
+                    <TabsTrigger value="Converter">Converter</TabsTrigger>
                 </TabsList>
             </Tabs>
-            <Keypad onButtonClick={handleButtonClick} mode={mode} />
+            {appMode === 'Calculator' && <CalculatorDisplay expression={expression} result={result} />}
+        </CardHeader>
+        <CardContent>
+            <Tabs value={appMode} defaultValue="Calculator" className="w-full">
+                <TabsContent value="Calculator">
+                    <Tabs value={mode} onValueChange={(value) => handleModeChange(value as CalculatorMode)} className="w-full mb-4">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="Standard">Standard</TabsTrigger>
+                            <TabsTrigger value="Scientific">Scientific</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                    <Keypad onButtonClick={handleButtonClick} mode={mode} />
+                </TabsContent>
+                <TabsContent value="Converter">
+                    <Converter />
+                </TabsContent>
+            </Tabs>
         </CardContent>
     </Card>
   );
