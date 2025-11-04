@@ -1,18 +1,14 @@
+
 /**
  * @file Firestore Security Rules for Smart Calculator App
- * @description This ruleset enforces a strict user-ownership model for user profiles and their calculation histories.
+ * @description This ruleset enforces a strict user-ownership model for user profiles.
  *
  * Data Structure:
  * - /users/{userId}: Stores user profile information. Only the user can read/write their own profile.
- * - /users/{userId}/history/{calculationId}: Stores calculation history for each user. Only the user can access their own history.
  *
  * Key Security Decisions:
  * - Users can only access their own data. No cross-user access is allowed.
- * - Users can list their own calculation history.
- * - Data validation is relaxed during prototyping to allow for rapid iteration but is enforced for relational integrity.
- *
- * Denormalization for Authorization:
- * - CalculationHistory documents contain a `userId` field, denormalized from the parent path, to enable authorization independence and avoid costly `get()` operations.
+ * - Data validation is relaxed during prototyping to allow for rapid iteration.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -42,33 +38,6 @@ service cloud.firestore {
                    && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId)
                    && request.resource.data.id == resource.data.id; // Enforce immutability of userId
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Controls access to calculation history documents within a user's profile.
-     * @path /users/{userId}/history/{calculationId}
-     * @allow (create) User with ID 'user123' can create a calculation history entry under their profile.
-     * @allow (get, update, delete) User with ID 'user123' can read, update, and delete a calculation history entry under their profile.
-     * @deny (create, get, update, delete) User with ID 'user456' cannot access user 'user123' calculation history.
-     * @principle Enforces document ownership for all operations on calculation history.
-     */
-    match /users/{userId}/history/{calculationId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-
-      allow create: if isOwner(userId)
-                   && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId)
-                   && request.resource.data.userId == resource.data.userId; // Enforce immutability of userId
       allow delete: if isExistingOwner(userId);
     }
   }
