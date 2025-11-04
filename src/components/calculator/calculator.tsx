@@ -15,11 +15,10 @@ import { Switch } from '@/components/ui/switch';
 import { solveExpression, type SolutionStep } from '@/ai/flows/expression-solver';
 import TeacherMode from './teacher-mode';
 import { Button } from '../ui/button';
-import { Mic, MicOff, ChevronDown } from 'lucide-react';
+import { Mic, MicOff } from 'lucide-react';
 import MatrixCalculator from '../matrix/matrix-calculator';
 import EBBillCalculator from '../eb-bill/eb-bill-calculator';
 import EquationSolver from '../equation-solver/equation-solver';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 
 export type CalculatorMode = 'Standard' | 'Scientific';
@@ -337,9 +336,10 @@ export default function Calculator() {
       }
   }
   
-  const handleAppModeChange = (newMode: AppMode) => {
-    if (appMode !== newMode) {
-        setAppMode(newMode);
+  const handleAppModeChange = (newMode: string) => {
+    const validMode = newMode as AppMode;
+    if (appMode !== validMode) {
+        setAppMode(validMode);
         setExpression('');
         setResult('');
         setSolutionSteps([]);
@@ -385,31 +385,22 @@ export default function Calculator() {
 
   return (
     <Card className="w-full max-w-sm md:max-w-4xl mx-auto shadow-2xl transition-all duration-300">
+        <Tabs value={appMode} onValueChange={handleAppModeChange} className="w-full">
         <CardHeader>
-             <div className="w-full mb-2">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between">
-                            <span>{appModeLabels[appMode]}</span>
-                            <ChevronDown className="h-4 w-4 opacity-50" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                        {appModes.map((am) => (
-                           <DropdownMenuItem key={am} onSelect={() => handleAppModeChange(am as AppMode)}>
-                                {appModeLabels[am]}
-                           </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-             </div>
+             <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto">
+                {appModes.map((am) => (
+                    <TabsTrigger key={am} value={am}>
+                        {appModeLabels[am]}
+                    </TabsTrigger>
+                ))}
+             </TabsList>
             {appMode === 'Calculator' && (
-                <div className="relative">
+                <div className="relative pt-2">
                     <CalculatorDisplay expression={expression} result={result} />
                     <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="absolute top-2 right-2 text-muted-foreground"
+                        className="absolute top-4 right-2 text-muted-foreground"
                         onClick={handleVoiceInput}
                     >
                         {isListening ? <MicOff /> : <Mic />}
@@ -418,7 +409,7 @@ export default function Calculator() {
             )}
         </CardHeader>
         <CardContent>
-            <Tabs value={appMode} defaultValue="Calculator" className="w-full">
+            
                 <TabsContent value="Calculator" className="mt-0">
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center space-x-2">
@@ -452,8 +443,11 @@ export default function Calculator() {
                 <TabsContent value="Solver" className="mt-0">
                     <EquationSolver />
                 </TabsContent>
-            </Tabs>
+            
         </CardContent>
+        </Tabs>
     </Card>
   );
 }
+
+    
