@@ -222,13 +222,31 @@ export default function Calculator() {
     };
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error', event.error);
-      toast({
-        variant: "destructive",
-        title: "Voice Error",
-        description: event.error === 'not-allowed' ? "Microphone access denied." : "Something went wrong.",
-      });
-      setIsListening(false);
+        let description = "An unknown error occurred with voice recognition.";
+        switch (event.error) {
+            case 'not-allowed':
+                description = "Microphone access was denied. Please allow microphone access in your browser settings.";
+                break;
+            case 'network':
+                description = "A network error occurred. Please check your internet connection.";
+                break;
+            case 'no-speech':
+                description = "No speech was detected. Please try speaking again.";
+                break;
+            case 'audio-capture':
+                description = "There was a problem with your microphone.";
+                break;
+            case 'service-not-allowed':
+                description = "Speech recognition service is not allowed by your browser or system settings.";
+                break;
+        }
+
+        toast({
+            variant: "destructive",
+            title: "Voice Error",
+            description: description,
+        });
+        setIsListening(false);
     };
 
     recognition.onend = () => {
@@ -243,8 +261,18 @@ export default function Calculator() {
       recognitionRef.current?.stop();
       setIsListening(false);
     } else {
-      recognitionRef.current?.start();
-      setIsListening(true);
+      try {
+        recognitionRef.current?.start();
+        setIsListening(true);
+      } catch (error) {
+        console.error("Could not start voice recognition: ", error);
+        toast({
+            variant: "destructive",
+            title: "Voice Error",
+            description: "Could not start voice recognition service.",
+        });
+        setIsListening(false);
+      }
     }
   };
 
@@ -357,3 +385,5 @@ export default function Calculator() {
     </Card>
   );
 }
+
+    
